@@ -17,7 +17,7 @@ class Client{
     string ip_add;
     public:
         Client(){};
-        int GetFd()
+        int getFd()
         {
             return fd;
         };

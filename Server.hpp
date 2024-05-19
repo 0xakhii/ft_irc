@@ -10,13 +10,14 @@
 #include <arpa/inet.h> //-> for inet_ntoa()
 #include <poll.h> //-> for poll()
 
+using namespace std;
 
 class Client{
     int fd;
-    std::string ip_add;
+    string ip_add;
     public:
         Client(){};
-        int getFd()
+        int GetFd()
         {
             return fd;
         };
@@ -24,7 +25,7 @@ class Client{
         {
             fd = Fd;
         }
-        void SetIppAdd(std::string ip)
+        void SetIppAdd(string ip)
         {
             ip_add = ip;
 
@@ -33,11 +34,11 @@ class Client{
 
 class Server{
     private:
-    std::vector<Client> clients;
+    vector<Client> clients;
     int port;
     int fd_Server;
     //static bool signal;
-    std::vector<struct pollfd>fds;
+    vector<struct pollfd>fds;
     public:
         Server(){
             fd_Server = -1;

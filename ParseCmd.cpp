@@ -1,11 +1,12 @@
 #include "Server.hpp"
+#include "Channel.hpp"
 
-void	ParseCmd(string cmd){
+void	ParseCmd(string cmd, Channel &ch){
 	if (cmd[0] != '/' || cmd.empty())
-		cerr << "Invalid command\n";
+		cerr << ERR << "Invalid command\n" << RESET;
 	else{
 		string args = cmd.substr(cmd.find_first_of(' ') + 1);
-		cmd = cmd.substr(1, cmd.find_first_of(' '));
+		cmd = cmd.substr(1, cmd.find_first_of(' ') - 1);
 		string av[2];
 		av[0] = args.substr(0, args.find_first_of(' '));
 		av[1] = args.substr(args.find_first_of(' ') + 1, args.size());
@@ -14,6 +15,7 @@ void	ParseCmd(string cmd){
 		cout << "second arg " << av[1] << endl;
 		if (cmd == "JOIN"){
 			// Join a channel. If the channel specified does not exist, a new one will be created with the given name.
+			splitChannelName(av[0], ch);
 		}
 		else if (cmd == "INVITE"){
 			// Invite a user to a channel.
@@ -33,5 +35,7 @@ void	ParseCmd(string cmd){
 		else if (cmd == "QUIT"){
 			// Terminate a client’s connection to the server.
 		}
+		else
+			cout << "why?\n";
 	}
 }

@@ -1,6 +1,6 @@
 NAME = ircserv
 
-SRCS = Server.cpp ParseCmd.cpp
+SRCS = Server.cpp ParseCmd.cpp Channel.cpp
 
 CXX = c++
 

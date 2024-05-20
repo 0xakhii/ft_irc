@@ -94,7 +94,8 @@ void Server::ClearClients(int fd){ //-> clear the clients
 }
 
 
-int main()
-{
-
+int main(int ac, char **av){
+    (void)ac;
+    Channel ch;
+    ParseCmd(av[1], ch);
 }

@@ -10,13 +10,15 @@
 #include <arpa/inet.h> //-> for inet_ntoa()
 #include <poll.h> //-> for poll()
 #include <algorithm>
+#include <exception>
 #include "Channel.hpp"
 
-#define ERR "/033[1;31mError: "
-#define RESET "/033[0;0m"
+#define ERR "\033[1;31mError:\033[0;0m\n\033[1m"
+#define RESET "\033[0;0m"
 
 using namespace std;
 
+class Channel;
 class Client{
     int fd;
     string ip_add;
@@ -53,7 +55,5 @@ class Server{
     void ClearClients(int fd);
 };
 
-class Channel;
-
-void	ParseCmd(string cmd, Channel &ch);
-void	splitChannelName(string arg, Channel &ch);
+void	ParseCmd(string cmd, Channel &ch, Server serv);
+void	createChannel(string arg, Channel &ch);

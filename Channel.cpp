@@ -1,9 +1,9 @@
 #include "Channel.hpp"
 
-void	splitChannelName(string arg, Channel &ch){
+void	createChannel(string arg, Channel &ch){
 	arg = arg.substr(arg.find_first_not_of(' '));
 	if (arg[0] != '#')
-		cerr << ERR << "Invalid Channel Name\n" << RESET;
+		throw runtime_error(string(ERR) + "Invalid Channel Name\n" + RESET);
 	else{
 		arg = &arg[1];
 		cout << "channel name: " << arg << endl;

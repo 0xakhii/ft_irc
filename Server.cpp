@@ -35,7 +35,7 @@ void Server::ReceiveNewData(int fd)
 	
 		close(fd);
 	}
-//if not print the data received
+    //if not parse the data received
 	else{ 
 		buff[bytes] = '\0';
 		std::cout << "Client <" << fd_Server << "> Data: "  << buff;
@@ -80,7 +80,7 @@ int Server::be_ready_for_connection()
     while(1)
     {
         if(poll(&fds[0],fds.size(),-1) ==-1)
-            throw (std::runtime_error("our pool function failed"));
+            throw (std::runtime_error("our poll function failed"));
         for(size_t i = 0;i < fds.size();i++)
         {
             if(fds[i].revents & POLLIN)

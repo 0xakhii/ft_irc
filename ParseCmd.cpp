@@ -3,7 +3,7 @@
 
 void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 	(void)serv;
-	if (cmd[0] != '/' || cmd.empty())
+	if (cmd.empty())
 		throw runtime_error(string(ERR) + "Invalid command\n" + RESET);
 	else{
 		string args = cmd.substr(cmd.find_first_of(' ') + 1);

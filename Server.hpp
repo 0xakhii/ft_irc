@@ -9,6 +9,7 @@
 #include <unistd.h> //-> for close()
 #include <arpa/inet.h> //-> for inet_ntoa()
 #include <poll.h> //-> for poll()
+#include <cstring>
 #include <algorithm>
 #include <exception>
 #include "Channel.hpp"
@@ -21,9 +22,8 @@ using namespace std;
 class Channel;
 class Client{
     int fd;
-    string ip_add;
+    std::string ip_add;
     public:
-        Client(){};
         int getFd()
         {
             return fd;
@@ -32,7 +32,7 @@ class Client{
         {
             fd = Fd;
         }
-        void SetIppAdd(string ip)
+        void SetIppAdd(std::string ip)
         {
             ip_add = ip;
 
@@ -41,19 +41,22 @@ class Client{
 
 class Server{
     private:
-    vector<Client> clients;
-    int port;
+    std::vector<Client> clients;
+    
+    
     int fd_Server;
     //static bool signal;
-    vector<struct pollfd>fds;
+    std::vector<struct pollfd>fds;
     public:
+    int port;
+    std::string pass;
         Server(){
             fd_Server = -1;
         }
     int be_ready_for_connection();
     void AcceptNewConnetinClient();
+    void ReceiveNewData(int fd);
     void ClearClients(int fd);
 };
-
-void	ParseCmd(string cmd, Channel &ch, Server serv);
+void	ParseCmd(string cmd, Channel &ch, Server serv, int fd);
 void	createChannel(string arg, Channel &ch);

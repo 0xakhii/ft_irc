@@ -1,7 +1,7 @@
 #include "Server.hpp"
 #include "Channel.hpp"
 
-void	ParseCmd(string cmd, Channel &ch, Server serv){
+void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 	(void)serv;
 	if (cmd[0] != '/' || cmd.empty())
 		throw runtime_error(string(ERR) + "Invalid command\n" + RESET);
@@ -47,7 +47,9 @@ void	ParseCmd(string cmd, Channel &ch, Server serv){
 		}
 		else if (cmd == "QUIT"){ // Terminate a client’s connection to the server.
 			cout << "quit message: " << av[0] << endl;
-			// serv.ClearClients();
+			serv.ClearClients(fd);
+			close(fd);
+			
 		}
 		else
 			cout << "why?\n";

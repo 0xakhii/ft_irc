@@ -41,11 +41,14 @@ class Channel {
 			Channels.erase(channelName);
 			return true;
 		}
-		bool setTopic(const string& channelName, const string& newTopic) {
+		bool setTopic(const string& channelName, const string& newTopic, const string& username) {
 			if (!hasChannel(channelName)) {
 				return false;
 			}
-			Channels[channelName].topic = newTopic;
+			if (!isOperator(channelName, username))
+				return false;
+			else
+				Channels[channelName].topic = newTopic;
 			return true;
 		}
 		string getTopic(const string& channelName) const {

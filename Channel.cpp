@@ -9,9 +9,10 @@ void	createChannel(string arg, Channel &ch){
 		cout << "channel name: " << arg << endl;
 		if (find(ch.getChannelNames().begin(), ch.getChannelNames().end(), arg) != ch.getChannelNames().end()){
 			// check if user can enter this channel
+			cout << "here\n";
 		}
 		else{
-			ch.setChannelNames(arg);
+			ch.addChannel(arg);
 		}
 	}
 }

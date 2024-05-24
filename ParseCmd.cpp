@@ -17,6 +17,7 @@ void	splitArgs(string av[2], string args){
 
 void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 	(void)serv;
+	string username; // temp string until i get the clients data
 	if (cmd.empty())
 		throw runtime_error(string(ERR) + "Invalid command\n" + RESET);
 	else{
@@ -38,7 +39,6 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 				if (av[1].empty())// print the channel topic
 					cout << av[0] << ": " << ch.getTopic(&av[0][1]) << endl;
 				else{
-					string username; // temp string until i get the clients data
 					if (!ch.setTopic(av[0], av[1], username))
 						throw runtime_error(string(ERR) + "Can't set a new topic\n" + RESET);
 				}
@@ -47,22 +47,28 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 				throw runtime_error(string(ERR) + "Invalid Channel Name\n" + RESET);
 		}
 		else if (cmd == "MODE"){ // Set or remove options (or modes) to a given target.
+			char modeSign = av[1][0];
+			char modeFlag = av[1][1];
 			if (av[0][0] == '#'){
 				cout << "for channels: " << av[0] << endl;
-				if (av[1][0] == '+'){
-					cout << "mode <+>: " << av[1][1] << endl;
+				if (modeSign == '+'){
+					if (modeFlag == 'o')
+						ch.addOperator(av[0], username);
+					cout << "mode <+>: " << modeFlag << endl;
 				}
-				else if (av[1][0] == '-'){
-					cout << "mode <->: " << av[1][1] << endl;
+				else if (modeSign == '-'){
+					if (modeFlag == 'o')
+						ch.removeOperator(av[0], username);
+					cout << "mode <->: " << modeFlag << endl;
 				}
 			}
 			else{
 				cout << "for users: " << av[0] << endl;
-				if (av[1][0] == '+'){
-					cout << "mode <+>: " << av[1][1] << endl;
+				if (modeSign == '+'){
+					cout << "mode <+>: " << modeFlag << endl;
 				}
-				else if (av[1][0] == '-'){
-					cout << "mode <->: " << av[1][1] << endl;
+				else if (modeSign == '-'){
+					cout << "mode <->: " << modeFlag << endl;
 				}
 			}
 		}

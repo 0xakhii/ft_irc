@@ -50,38 +50,45 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 			char modeSign = av[1][0];
 			char modeFlag = av[1][1];
 			if (av[0][0] == '#'){
-				cout << "for channels: " << av[0] << endl;
+				av[0] = &av[0][1];
 				if (modeSign == '+'){
 					switch (modeFlag)
 					{
-					case 'o':
-						ch.addOperator(av[0], username);
-						break;
-					
-					default:
-						break;
+						case 'o': // Givechannel operator privilege
+							ch.addOperator(av[0], username);
+							break;
+						case 'i': // Set Invite-only channel
+							break;
+						case 'l': // Set the user limit to channel
+							break;
+						case 'k': // Set the channel key (password)
+							break;
+						case 't': //Set the restrictions of the TOPIC command to channel operators
+							break;
+						default:
+							throw runtime_error(string(ERR) + "Invalid Mode Flag\n" + RESET);
+							break;
 					}
 					cout << "mode <+>: " << modeFlag << endl;
 				}
 				else if (modeSign == '-'){
 					switch (modeFlag)
 					{
-					case 'o':
-						ch.removeOperator(av[0], username);
-						break;
-					
-					default:
-						break;
+						case 'o': // take channel operator privilege
+							ch.removeOperator(av[0], username);
+							break;
+						case 'i': // remove Invite-only channel
+							break;
+						case 'l': // remove the user limit to channel
+							break;
+						case 'k': // remove the channel key (password)
+							break;
+						case 't': // remove the restrictions of the TOPIC command to channel operators
+							break;
+						default:
+							throw runtime_error(string(ERR) + "Invalid Mode Flag\n" + RESET);
+							break;
 					}
-					cout << "mode <->: " << modeFlag << endl;
-				}
-			}
-			else{
-				cout << "for users: " << av[0] << endl;
-				if (modeSign == '+'){
-					cout << "mode <+>: " << modeFlag << endl;
-				}
-				else if (modeSign == '-'){
 					cout << "mode <->: " << modeFlag << endl;
 				}
 			}
@@ -94,7 +101,7 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 			cout << "quit message: " << av[0] << endl;
 			serv.ClearClients(fd);
 			close(fd);
-			cout << "Client: " << fd << "Disconnected\n";
+			cout << "Client <" << fd << "> Disconnected\n";
 			
 		}
 		else

@@ -52,13 +52,27 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 			if (av[0][0] == '#'){
 				cout << "for channels: " << av[0] << endl;
 				if (modeSign == '+'){
-					if (modeFlag == 'o')
+					switch (modeFlag)
+					{
+					case 'o':
 						ch.addOperator(av[0], username);
+						break;
+					
+					default:
+						break;
+					}
 					cout << "mode <+>: " << modeFlag << endl;
 				}
 				else if (modeSign == '-'){
-					if (modeFlag == 'o')
+					switch (modeFlag)
+					{
+					case 'o':
 						ch.removeOperator(av[0], username);
+						break;
+					
+					default:
+						break;
+					}
 					cout << "mode <->: " << modeFlag << endl;
 				}
 			}

@@ -1,6 +1,20 @@
 #include "Server.hpp"
 #include "Channel.hpp"
 
+void	splitArgs(string av[2], string args){
+	size_t spacePos = args.find_first_of(' ');
+	while (spacePos != string::npos && args[spacePos + 1] == ' ')
+		spacePos = args.find_first_of(' ', spacePos + 1);
+	if (spacePos != string::npos){
+		av[0] = args.substr(0, spacePos);
+		av[1] = args.substr(spacePos + 1);
+	}
+	else{
+		av[0] = args;
+		av[1].clear();
+	}
+}
+
 void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 	(void)serv;
 	if (cmd.empty())
@@ -9,18 +23,7 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 		string args = cmd.substr(cmd.find_first_of(' ') + 1);
 		cmd = cmd.substr(1, cmd.find_first_of(' ') - 1);
 		string av[2];
-		
-		size_t spacePos = args.find_first_of(' ');
-		while (spacePos != string::npos && args[spacePos + 1] == ' ') {
-			spacePos = args.find_first_of(' ', spacePos + 1);
-		}
-		if (spacePos != string::npos) {
-			av[0] = args.substr(0, spacePos);
-			av[1] = args.substr(spacePos + 1);
-		} else {
-			av[0] = args;
-			av[1].clear();
-		}
+		splitArgs(av, args);
 		cout << "cmd: " << cmd << endl;
 		if (cmd == "JOIN"){ // Join a channel. If the channel specified does not exist, a new one will be created with the given name.
 			createChannel(av[0], ch);
@@ -38,7 +41,7 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 					string username; // temp string until i get the clients data
 					if (!ch.setTopic(av[0], av[1], username))
 						throw runtime_error(string(ERR) + "Can't set a new topic\n" + RESET);
-					cout << "hna\n";				}
+				}
 			}
 			else
 				throw runtime_error(string(ERR) + "Invalid Channel Name\n" + RESET);
@@ -71,6 +74,7 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 			cout << "quit message: " << av[0] << endl;
 			serv.ClearClients(fd);
 			close(fd);
+			cout << "Client: " << fd << "Disconnected\n";
 			
 		}
 		else

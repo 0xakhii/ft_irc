@@ -6,10 +6,11 @@
 #include <algorithm>
 #include <sys/socket.h> //-> for socket()
 #include <set>
+#include"kickcmd.hpp"
 #define ERR "\033[1;31mError:\033[0;0m\n\033[1m"
 #define RESET "\033[0;0m"
 using namespace std;
-
+class KickCmd;
 class Channel {
 	private:
 		struct ChannelData {

@@ -17,6 +17,7 @@ void	splitArgs(string av[2], string args){
 
 void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 	(void)serv;
+	KickCmd k;
 	if (cmd.empty())
 		throw runtime_error(string(ERR) + "Invalid command\n" + RESET);
 	else if (cmd[0] == '/'){
@@ -34,6 +35,7 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 		else if (cmd == "INVITE"){ // Invite a user to a channel.
 		}
 		else if (cmd == "KICK"){ // Kick a user from the channel.
+			k.kick(av, ch);
 		}
 		else if (cmd == "TOPIC"){ // Change or view the topic of the given channel.
 			// check the channel where the user run /topic

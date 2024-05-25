@@ -32,7 +32,7 @@ void Server::ReceiveNewData(int fd, Channel& ch)
     //if the client disconnected
 	if(bytes <= 0){ 
 		std::cout  << "Client <" << fd << "> Disconnected" << std::endl;
-	
+        ClearClients(fd);
 		close(fd);
 	}
     //if not parse the data received

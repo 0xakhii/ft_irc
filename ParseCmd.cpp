@@ -126,10 +126,10 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 		else
 			cout << "why?\n";
 	}
-	else{
+	else if (!cmd.empty()){
 		for(size_t i = 0; i < serv.clients.size(); i++){
 			if (serv.clients[i].getFd() == fd)
-				ch.broadcastMessage(ch.getJoinedChannel(serv.clients[i].getUser()), cmd, fd);
+				ch.broadcastMessage(ch.getJoinedChannel(serv.clients[i].getUser()), cmd, fd, serv.clients[i].getUser());
 		}
 	}
 }

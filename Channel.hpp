@@ -19,7 +19,7 @@ class Channel {
 			map<string, int> userList;
 			int userLimit;
 		};
-	map<string, ChannelData> Channels;
+		map<string, ChannelData> Channels;
 	public:
 		bool hasChannel(const string& channelName) const {
 			return Channels.count(channelName) > 0;
@@ -60,7 +60,7 @@ class Channel {
 		}
 		bool addUser(const string& channelName, const string& username, int fd) {
 			Channels[channelName].userList[username] = fd;
-			broadcastMessage(channelName, username + " has joind the channel\n", fd);
+			broadcastMessage(channelName, username + " has joind the channel\n", fd, username);
 			return true;
 		}
 		bool removeUser(const string& channelName, const string& username) {
@@ -86,21 +86,21 @@ class Channel {
 		}
 		vector<string> getChannelNames() const {
 			vector<string> channelNames;
-			for (const pair<string, ChannelData>& channel : Channels) {
+			for (const pair<string, ChannelData>& channel : Channels)
 				channelNames.push_back(channel.first);
-			}
 			return channelNames;
 		}
 		string getJoinedChannel(const string& username) const {
-			for (map<string, ChannelData>::const_iterator it = Channels.begin(); it != Channels.end(); ++it) {
-				const ChannelData& channelData = it->second;
+			string lastJoinedChannel = "";
+			for (const pair<string, ChannelData>& channel : Channels) {
+				const ChannelData& channelData = channel.second;
 				if (channelData.userList.count(username) > 0) {
-					return channelData.name;
+					lastJoinedChannel = channelData.name;
 				}
 			}
-			return "";
+			return lastJoinedChannel;
 		}
-		void broadcastMessage(const string& channelName, const string& message, int fd) {
+		void broadcastMessage(const string& channelName, const string& message, int fd, string username) {
 			if (!hasChannel(channelName)) {
 				cout << ERR << "Invalid Channel Name\n" << RESET;
 				return;
@@ -108,8 +108,11 @@ class Channel {
 			const map<string, int>& userList = Channels.at(channelName).userList;
 			for (map<string, int>::const_iterator it = userList.begin(); it != userList.end(); ++it) {
 				cout << "Broadcasting message to user: " << it->first << endl;
-				if (fd != it->second)
-					send(it->second, message.c_str(), message.size(), 0);
+				string toSend = username + ": " + message;
+				if (fd != it->second){
+					send(it->second, toSend.c_str(), toSend.size(), 0);
+				}
 			}
 		}
+		
 };

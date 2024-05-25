@@ -7,14 +7,17 @@ void	createChannel(string arg, Channel &ch, string username, int fd){
 	else{
 		arg = &arg[1];
 		cout << "channel name: " << arg << endl;
-		if (find(ch.getChannelNames().begin(), ch.getChannelNames().end(), arg) != ch.getChannelNames().end()){
+		if (ch.hasChannel(arg)){
 			// check if user can enter this channel
+			cout << arg << endl;
 			ch.addUser(arg, username, fd);
 			cout << "here\n";
 		}
 		else{
-			if (!ch.addChannel(arg, username, fd))
-				throw runtime_error(string(ERR) + "Channel already exists\n" + RESET);
+			if (!ch.addChannel(arg, username, fd)){
+				cout << ERR << "Channel already exists\n" << RESET;
+				return ;
+			}
 		}
 	}
 }

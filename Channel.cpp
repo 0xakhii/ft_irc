@@ -1,6 +1,6 @@
 #include "Channel.hpp"
 
-void	createChannel(string arg, Channel &ch){
+void	createChannel(string arg, Channel &ch, string username){
 	arg = arg.substr(arg.find_first_not_of(' '));
 	if (arg[0] != '#')
 		throw runtime_error(string(ERR) + "Invalid Channel Name\n" + RESET);
@@ -9,10 +9,12 @@ void	createChannel(string arg, Channel &ch){
 		cout << "channel name: " << arg << endl;
 		if (find(ch.getChannelNames().begin(), ch.getChannelNames().end(), arg) != ch.getChannelNames().end()){
 			// check if user can enter this channel
+			ch.addUser(arg, username);
 			cout << "here\n";
 		}
 		else{
-			ch.addChannel(arg);
+			if (!ch.addChannel(arg, username))
+				throw runtime_error(string(ERR) + "Channel already exists\n" + RESET);
 		}
 	}
 }

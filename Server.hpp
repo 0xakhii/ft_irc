@@ -23,6 +23,7 @@ class Channel;
 class Client{
     int fd;
     std::string ip_add;
+    string  username;
     public:
         int getFd()
         {
@@ -37,17 +38,23 @@ class Client{
             ip_add = ip;
 
         }
+        void setUser(string _username){
+            username = _username;
+        }
+        string getUser(){
+            return username;
+        }
 };
 
 class Server{
     private:
-    std::vector<Client> clients;
     
     
     int fd_Server;
     //static bool signal;
     std::vector<struct pollfd>fds;
     public:
+    std::vector<Client> clients;
     int port;
     std::string pass;
         Server(){
@@ -58,5 +65,6 @@ class Server{
     void ReceiveNewData(int fd);
     void ClearClients(int fd);
 };
+
 void	ParseCmd(string cmd, Channel &ch, Server serv, int fd);
-void	createChannel(string arg, Channel &ch);
+void	createChannel(string arg, Channel &ch, string username);

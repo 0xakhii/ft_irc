@@ -12,20 +12,20 @@ void Server::AcceptNewConnetinClient(){
     clientPoll.fd=accept_cl;
     clientPoll.events=POLLIN;
     clientPoll.revents=0;
+    new_client.setUser("user" + to_string(accept_cl));
+    cout << "user" + to_string(accept_cl) << endl;
     new_client.SetFd(accept_cl); //-> set the client file descriptor
- new_client.SetIppAdd(inet_ntoa((client_add.sin_addr))); //-> convert the ip address to string and set it
- clients.push_back(new_client); //-> add the client to the vector of clients
- fds.push_back(clientPoll); //-> add the client socket to the pollfd
+    new_client.SetIppAdd(inet_ntoa((client_add.sin_addr))); //-> convert the ip address to string and set it
+    clients.push_back(new_client); //-> add the client to the vector of clients
+    fds.push_back(clientPoll); //-> add the client socket to the pollfd
 
- std::cout <<"client connected seccefully<" << accept_cl << ">" << std::endl;
+    std::cout <<"client connected seccefully<" << accept_cl << ">" << std::endl;
  }
 
 void Server::ReceiveNewData(int fd)
 {
     //this is the buff thata we wiil store our data received in
 	char buff[1024]; 
-    Client c;
-
     //clear the buffer
 	memset(buff, 0, sizeof(buff)); 
 	ssize_t bytes = recv(fd, buff, sizeof(buff) - 1 , 0); 
@@ -38,7 +38,7 @@ void Server::ReceiveNewData(int fd)
     //if not parse the data received
 	else{ 
 		buff[bytes] = '\0';
-		std::cout << "Client <" << fd_Server << "> Data: "  << buff;
+		std::cout << "Client <" << fd << "> Data: "  << buff;
         Channel ch;
         ParseCmd(buff, ch, *this, fd);
 	}

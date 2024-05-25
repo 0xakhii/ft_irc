@@ -4,7 +4,7 @@ SRCS = Server.cpp ParseCmd.cpp Channel.cpp
 
 CXX = c++
 
-CXXFLAGS = -Wall -Wextra -Werror -g3 -fsanitize=address -std=c++98
+CXXFLAGS = -g3 -fsanitize=address#-Wall -Wextra -Werror  #-std=c++98
 
 OBJS = ${SRCS:.cpp=.o}
 

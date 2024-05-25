@@ -19,7 +19,6 @@
 
 using namespace std;
 
-class Channel;
 class Client{
     int fd;
     std::string ip_add;
@@ -46,6 +45,7 @@ class Client{
         }
 };
 
+class Channel;
 class Server{
     private:
     
@@ -55,6 +55,7 @@ class Server{
     std::vector<struct pollfd>fds;
     public:
     std::vector<Client> clients;
+    Channel ch;
     int port;
     std::string pass;
         Server(){
@@ -62,9 +63,8 @@ class Server{
         }
     int be_ready_for_connection();
     void AcceptNewConnetinClient();
-    void ReceiveNewData(int fd, Channel ch);
+    void ReceiveNewData(int fd, Channel& ch);
     void ClearClients(int fd);
 };
-
 void	ParseCmd(string cmd, Channel &ch, Server serv, int fd);
-void	createChannel(string arg, Channel &ch, string username);
+void	createChannel(string arg, Channel &ch, string username, int fd);

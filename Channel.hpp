@@ -1,11 +1,13 @@
 #pragma once
-
-#include "Server.hpp"
+#include <iostream>
 #include <vector>
 #include <string>
 #include <map>
+#include <algorithm>
+#include <sys/socket.h> //-> for socket()
 #include <set>
-
+#define ERR "\033[1;31mError:\033[0;0m\n\033[1m"
+#define RESET "\033[0;0m"
 using namespace std;
 
 class Channel {
@@ -14,35 +16,36 @@ class Channel {
 			string name;
 			string topic;
 			set<string> operators;
-			vector<string> userList;
+			map<string, int> userList;
+			int userLimit;
 		};
-		map<string, ChannelData> Channels;
+	map<string, ChannelData> Channels;
 	public:
 		bool hasChannel(const string& channelName) const {
-			cout << Channels.count(channelName) << " <====\n";
 			return Channels.count(channelName) > 0;
 		}
-		bool addChannel(const string& channelName, string username) {
-			if (hasChannel(channelName)) {
+		bool addChannel(const string& channelName, string username, int fd) {
+			std::pair<map<string, ChannelData>::iterator, bool> result = Channels.insert({channelName, ChannelData{}});
+			if (!result.second) {
 				return false;
 			}
-			Channels[channelName].name = channelName;
-			Channels[channelName].topic = "topic";
-			Channels[channelName].operators.insert(username);
-			Channels[channelName].userList.push_back(username);
-			cout << "Channel Created: " << Channels.at(channelName).name << endl;
-			cout << "OP USER: " << *Channels.at(channelName).operators.find(username) << endl;
+			result.first->second.name = channelName;
+			result.first->second.topic = "topic\n";
+			result.first->second.operators.insert(username);
+			result.first->second.userList[username] = fd;
+			result.first->second.userLimit = -1;
+			cout << "Channel Created: " << result.first->second.name << endl;
+			cout << "OP USER: " << *result.first->second.operators.find(username) << endl;
 			return true;
 		}
-		map<string, ChannelData> getChannel(const string& channelName) {
-			if (!hasChannel(channelName)) {
+		const ChannelData& getChannel(const string& channelName) const {
+			if (!hasChannel(channelName)){
+				static ChannelData empty;
+				return empty;
 			}
-			return Channels;
+			return Channels.at(channelName);
 		}
-		bool removeChannel(const string& channelName) {
-			Channels.erase(channelName);
-			return true;
-		}
+
 		bool setTopic(const string& channelName, const string& newTopic, const string& username) {
 			if (!isOperator(channelName, username))
 				return false;
@@ -51,23 +54,19 @@ class Channel {
 			return true;
 		}
 		string getTopic(const string& channelName) const {
-			// if (!hasChannel(channelName)) {
-			// 	return "";
-			// }
+			if (!hasChannel(channelName))
+				return "";
 			return Channels.at(channelName).topic;
 		}
-		bool addUser(const string& channelName, const string& username) {
-			Channels[channelName].userList.push_back(username);
+		bool addUser(const string& channelName, const string& username, int fd) {
+			Channels[channelName].userList[username] = fd;
+			broadcastMessage(channelName, username + " has joind the channel\n", fd);
 			return true;
 		}
 		bool removeUser(const string& channelName, const string& username) {
 			ChannelData& channelData = Channels[channelName];
-			vector<string>::iterator it = find(channelData.userList.begin(), channelData.userList.end(), username);
-			if (it != channelData.userList.end()) {
-				channelData.userList.erase(it);
-				return true;
-			}
-			return false;
+			channelData.userList.erase(username);
+			return true;
 		}
 		bool isOperator(const string& channelName, const string& username) const {
 			return Channels.at(channelName).operators.count(username) > 0;
@@ -79,17 +78,38 @@ class Channel {
 		bool removeOperator(const string& channelName, const string& username) {
 			return Channels.at(channelName).operators.erase(username) > 0;
 		}
-		vector<string> getUserList(const string& channelName) const {
+		map<string, int> getUserList(const string& channelName) const {
 			if (!hasChannel(channelName)) {
-				return vector<string>();
+				return map<string, int>();
 			}
 			return Channels.at(channelName).userList;
 		}
 		vector<string> getChannelNames() const {
 			vector<string> channelNames;
-			for (map<string, ChannelData>::const_iterator it = Channels.begin(); it != Channels.end(); ++it) {
-				channelNames.push_back(it->first);
+			for (const pair<string, ChannelData>& channel : Channels) {
+				channelNames.push_back(channel.first);
 			}
 			return channelNames;
+		}
+		string getJoinedChannel(const string& username) const {
+			for (map<string, ChannelData>::const_iterator it = Channels.begin(); it != Channels.end(); ++it) {
+				const ChannelData& channelData = it->second;
+				if (channelData.userList.count(username) > 0) {
+					return channelData.name;
+				}
+			}
+			return "";
+		}
+		void broadcastMessage(const string& channelName, const string& message, int fd) {
+			if (!hasChannel(channelName)) {
+				cout << ERR << "Invalid Channel Name\n" << RESET;
+				return;
+			}
+			const map<string, int>& userList = Channels.at(channelName).userList;
+			for (map<string, int>::const_iterator it = userList.begin(); it != userList.end(); ++it) {
+				cout << "Broadcasting message to user: " << it->first << endl;
+				if (fd != it->second)
+					send(it->second, message.c_str(), message.size(), 0);
+			}
 		}
 };

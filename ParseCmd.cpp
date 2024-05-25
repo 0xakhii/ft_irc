@@ -19,8 +19,8 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 	(void)serv;
 	if (cmd.empty())
 		throw runtime_error(string(ERR) + "Invalid command\n" + RESET);
-	else{
-		string args = cmd.substr(cmd.find_first_of(' ') + 1, '\n' - 1);
+	else if (cmd[0] == '/'){
+		string args = cmd.substr(cmd.find_first_of(' ') + 1);
 		cmd = cmd.substr(1, cmd.find_first_of(' ') - 1);
 		string av[2];
 		splitArgs(av, args);
@@ -28,7 +28,7 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 		if (cmd == "JOIN"){ // Join a channel. If the channel specified does not exist, a new one will be created with the given name.
 			for(size_t i = 0; i < serv.clients.size(); i++){
 				if (serv.clients[i].getFd() == fd)
-					createChannel(av[0], ch, serv.clients[i].getUser());
+					createChannel(av[0], ch, serv.clients[i].getUser(), serv.clients[i].getFd());
 			}
 		}
 		else if (cmd == "INVITE"){ // Invite a user to a channel.
@@ -125,5 +125,11 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 		}
 		else
 			cout << "why?\n";
+	}
+	else{
+		for(size_t i = 0; i < serv.clients.size(); i++){
+			if (serv.clients[i].getFd() == fd)
+				ch.broadcastMessage(ch.getJoinedChannel(serv.clients[i].getUser()), cmd, fd);
+		}
 	}
 }

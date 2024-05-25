@@ -22,13 +22,15 @@ class Channel {
 			return Channels.count(channelName) > 0;
 		}
 		bool addChannel(const string& channelName, string username) {
-			// if (hasChannel(channelName)) {
-			// 	return false;
-			// }
+			if (hasChannel(channelName)) {
+				return false;
+			}
 			Channels[channelName].name = channelName;
 			Channels[channelName].topic = "topic";
 			Channels[channelName].operators.insert(username);
 			Channels[channelName].userList.push_back(username);
+			cout << "Channel Created: " << Channels.at(channelName).name << endl;
+			cout << "OP USER: " << *Channels.at(channelName).operators.find(username) << endl;
 			return true;
 		}
 		map<string, ChannelData> getChannel(const string& channelName) {
@@ -41,9 +43,9 @@ class Channel {
 			return true;
 		}
 		bool setTopic(const string& channelName, const string& newTopic, const string& username) {
-			// if (!isOperator(channelName, username))
-			// 	return false;
-			// else
+			if (!isOperator(channelName, username))
+				return false;
+			else
 				Channels[channelName].topic = newTopic;
 			return true;
 		}

@@ -62,7 +62,7 @@ class Server{
         }
     int be_ready_for_connection();
     void AcceptNewConnetinClient();
-    void ReceiveNewData(int fd);
+    void ReceiveNewData(int fd, Channel ch);
     void ClearClients(int fd);
 };
 

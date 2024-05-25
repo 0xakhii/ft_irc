@@ -22,7 +22,7 @@ void Server::AcceptNewConnetinClient(){
     std::cout <<"client connected seccefully<" << accept_cl << ">" << std::endl;
  }
 
-void Server::ReceiveNewData(int fd)
+void Server::ReceiveNewData(int fd, Channel ch)
 {
     //this is the buff thata we wiil store our data received in
 	char buff[1024]; 
@@ -39,7 +39,6 @@ void Server::ReceiveNewData(int fd)
 	else{ 
 		buff[bytes] = '\0';
 		std::cout << "Client <" << fd << "> Data: "  << buff;
-        Channel ch;
         ParseCmd(buff, ch, *this, fd);
 	}
 }
@@ -48,6 +47,7 @@ int Server::be_ready_for_connection()
 {
     struct sockaddr_in add;
     struct pollfd NewPoll;
+    Channel ch;
     add.sin_family=AF_INET;
     add.sin_port=htons(this->port);
    this->fd_Server = socket(AF_INET,SOCK_STREAM,0);
@@ -92,13 +92,14 @@ int Server::be_ready_for_connection()
                 }
                 else{
                      
-                    ReceiveNewData(fds[i].fd);
+                    ReceiveNewData(fds[i].fd, ch);
                     //std::cout<<"receive a new data from a registred client"<<std::endl;
                 }
             }
         }
     }
     close(this->fd_Server);
+    return 0;
 }
 
 

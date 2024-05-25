@@ -19,6 +19,7 @@ class Channel {
 		map<string, ChannelData> Channels;
 	public:
 		bool hasChannel(const string& channelName) const {
+			cout << Channels.count(channelName) << " <====\n";
 			return Channels.count(channelName) > 0;
 		}
 		bool addChannel(const string& channelName, string username) {

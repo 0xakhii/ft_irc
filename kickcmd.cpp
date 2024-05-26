@@ -1,6 +1,10 @@
 #include"kickcmd.hpp"
 #include<sstream>
 
+KickCmd::KickCmd(){}
+
+KickCmd::~KickCmd(){}
+
 //hadchi mzl 5asso ntchiki lpermesion d client li msendi request o nsendi response
 
 

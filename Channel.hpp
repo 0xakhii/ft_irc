@@ -51,8 +51,7 @@ class Channel {
 		bool setTopic(const string& channelName, const string& newTopic, const string& username) {
 			if (!isOperator(channelName, username))
 				return false;
-			else
-				Channels[channelName].topic = newTopic;
+			Channels[channelName].topic = newTopic;
 			return true;
 		}
 		string getTopic(const string& channelName) const {
@@ -71,6 +70,8 @@ class Channel {
 			return true;
 		}
 		bool isOperator(const string& channelName, const string& username) const {
+			if (Channels.at(channelName).operators.count(username) == 1)
+				return true;
 			return Channels.at(channelName).operators.count(username) > 0;
 		}
 		bool addOperator(const string& channelName, const string& username) {
@@ -98,22 +99,23 @@ class Channel {
 				const ChannelData& channelData = channel.second;
 				if (channelData.userList.count(username) > 0) {
 					lastJoinedChannel = channelData.name;
+					break;
 				}
 			}
 			return lastJoinedChannel;
 		}
 		void broadcastMessage(const string& channelName, const string& message, int fd, string username) {
-			if (!hasChannel(channelName)) {
+			string lastJoined = getJoinedChannel(username);
+			if (!hasChannel(lastJoined)) {
 				cout << ERR << "Invalid Channel Name\n" << RESET;
 				return;
 			}
-			const map<string, int>& userList = Channels.at(channelName).userList;
+			const map<string, int>& userList = Channels.at(lastJoined).userList;
 			for (map<string, int>::const_iterator it = userList.begin(); it != userList.end(); ++it) {
 				cout << "Broadcasting message to user: " << it->first << endl;
-				string toSend = string(YELLOW) + "#" + channelName + ":\n<" + username + ">" + RESET + message;
-				if (fd != it->second){
+				string toSend = string(YELLOW) + "#" + lastJoined + ":\n<" + username + ">" + RESET + message;
+				if (fd != it->second)
 					send(it->second, toSend.c_str(), toSend.size(), 0);
-				}
 			}
 		}
 		

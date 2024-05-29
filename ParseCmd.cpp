@@ -48,14 +48,16 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 		else if (cmd == "TOPIC"){ // Change or view the topic of the given channel.
 			// check the channel where the user run /topic
 			if (av[0][0] == '#'){
+				av[0] = &av[0][1];
 				if (av[1].empty()){ // print the channel topic
-					string topic = string(YELLOW) + "Channel: " + av[0] + "TOPIC: " + RESET + ch.getTopic(&av[0][1]);
+					string topic = string(YELLOW) + "Channel: " + av[0] + "TOPIC: " + RESET;
+					cout <<  "right here: " <<  ch.getTopic(av[0]) << endl;
 					send(fd, topic.c_str(), topic.size(), 0);
 				}
 				else{
 					for(size_t i = 0; i < serv.clients.size(); i++){
 						if (serv.clients[i].getFd() == fd){
-							if (!ch.setTopic(&av[0][1], av[1], serv.clients[i].getUser()))
+							if (!ch.setTopic(av[0], av[1], serv.clients[i].getUser()))
 								cout << string(ERR) + "Can't set a new topic\n" + RESET;
 						}
 					}

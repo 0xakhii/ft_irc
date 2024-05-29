@@ -15,11 +15,19 @@ void	splitArgs(string av[2], string args){
 	}
 }
 
+string	getUserbyFd(Server serv, int fd){
+	for(size_t i = 0; i < serv.clients.size(); i++){
+		if (serv.clients[i].getFd() == fd)
+			return serv.clients[i].getUser();
+	}
+	return "";
+}
+
 void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 	(void)serv;
 	KickCmd k;
 	if (cmd.empty())
-		throw runtime_error(string(ERR) + "Invalid command\n" + RESET);
+		cout << string(ERR) + "Invalid command\n" + RESET;
 	else if (cmd[0] == '/'){
 		string args = cmd.substr(cmd.find_first_of(' ') + 1);
 		cmd = cmd.substr(1, cmd.find_first_of(' ') - 1);
@@ -41,20 +49,20 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 			// check the channel where the user run /topic
 			if (av[0][0] == '#'){
 				if (av[1].empty()){ // print the channel topic
-					string topic = "Channel: " + av[0] + "TOPIC: " + ch.getTopic(&av[0][1]);
+					string topic = string(YELLOW) + "Channel: " + av[0] + "TOPIC: " + RESET + ch.getTopic(&av[0][1]);
 					send(fd, topic.c_str(), topic.size(), 0);
 				}
 				else{
 					for(size_t i = 0; i < serv.clients.size(); i++){
 						if (serv.clients[i].getFd() == fd){
 							if (!ch.setTopic(&av[0][1], av[1], serv.clients[i].getUser()))
-								throw runtime_error(string(ERR) + "Can't set a new topic\n" + RESET);
+								cout << string(ERR) + "Can't set a new topic\n" + RESET;
 						}
 					}
 				}
 			}
 			else
-				throw runtime_error(string(ERR) + "Invalid Channel Name\n" + RESET);
+				cout << string(ERR) + "Invalid Channel Name\n" + RESET;
 		}
 		else if (cmd == "MODE"){ // Set or remove options (or modes) to a given target.
 			char modeSign = av[1][0];
@@ -80,7 +88,7 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 						case 't': //Set the restrictions of the TOPIC command to channel operators
 							break;
 						default:
-							throw runtime_error(string(ERR) + "Invalid Mode Flag\n" + RESET);
+							cout << string(ERR) + "Invalid Mode Flag\n" + RESET;
 							break;
 					}
 					cout << "mode <+>: " << modeFlag << endl;
@@ -103,7 +111,7 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 						case 't': // remove the restrictions of the TOPIC command to channel operators
 							break;
 						default:
-							throw runtime_error(string(ERR) + "Invalid Mode Flag\n" + RESET);
+							cout << string(ERR) + "Invalid Mode Flag\n" + RESET;
 							break;
 					}
 					cout << "mode <->: " << modeFlag << endl;
@@ -114,8 +122,10 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 			cout << "Nickname: " << av[0] << endl;
 			cout << "message: " << av[1] << endl;
 			for(size_t i = 0; i < serv.clients.size(); i++){
-				if (serv.clients[i].getUser() == av[0])
-					send(serv.clients[i].getFd(), av[1].c_str(), av[1].size(), 0);
+				if (serv.clients[i].getUser() == av[0]){
+					string toSend = string(YELLOW) + "PRIVATE MESSAGE FROM " + getUserbyFd(serv, fd) + ": " + RESET + av[1];
+					send(serv.clients[i].getFd(), toSend.c_str(), toSend.size(), 0);
+				}
 			}
 		}
 		else if (cmd == "QUIT"){ // Terminate a client’s connection to the server.

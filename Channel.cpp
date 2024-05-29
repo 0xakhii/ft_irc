@@ -2,6 +2,8 @@
 
 void	createChannel(string arg, Channel &ch, string username, int fd){
 	arg = arg.substr(arg.find_first_not_of(' '));
+	if (arg.back() == '\n')
+		arg.pop_back();
 	if (arg[0] != '#')
 		throw runtime_error(string(ERR) + "Invalid Channel Name\n" + RESET);
 	else{

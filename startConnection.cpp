@@ -1,4 +1,5 @@
-#include "Server.hpp"
+#include"Server.hpp"
+#include"Channel.hpp"
 
 
 void Server::AcceptNewConnetinClient(){
@@ -12,34 +13,40 @@ void Server::AcceptNewConnetinClient(){
     clientPoll.fd=accept_cl;
     clientPoll.events=POLLIN;
     clientPoll.revents=0;
-    new_client.setUser("user" + to_string(accept_cl));
-    cout << "user" + to_string(accept_cl) << endl;
     new_client.SetFd(accept_cl); //-> set the client file descriptor
-    new_client.SetIppAdd(inet_ntoa((client_add.sin_addr))); //-> convert the ip address to string and set it
-    clients.push_back(new_client); //-> add the client to the vector of clients
-    fds.push_back(clientPoll); //-> add the client socket to the pollfd
+ new_client.SetIppAdd(inet_ntoa((client_add.sin_addr))); //-> convert the ip address to string and set it
+ clients.push_back(new_client); //-> add the client to the vector of clients
+ fds.push_back(clientPoll); //-> add the client socket to the pollfd
 
-    std::cout <<"client connected seccefully<" << accept_cl << ">" << std::endl;
+ std::cout <<"client connected seccefully" << std::endl;
+ // Send IRC welcome messages
+  
  }
 
-void Server::ReceiveNewData(int fd, Channel& ch)
+void Server::ReceiveNewData(int fd, Channel ch)
 {
     //this is the buff thata we wiil store our data received in
 	char buff[1024]; 
+    Client c;
+
     //clear the buffer
 	memset(buff, 0, sizeof(buff)); 
 	ssize_t bytes = recv(fd, buff, sizeof(buff) - 1 , 0); 
     //if the client disconnected
 	if(bytes <= 0){ 
 		std::cout  << "Client <" << fd << "> Disconnected" << std::endl;
-        ClearClients(fd);
+	
 		close(fd);
 	}
-    //if not parse the data received
+//if not print the data received
 	else{ 
 		buff[bytes] = '\0';
-		std::cout << "Client <" << fd << "> Data: "  << buff;
-        ParseCmd(string(buff), ch, *this, fd);
+        // static ch nwebuff += buff;
+        // if ( != std::npos)
+        std::string data(buff);
+        
+        parseClientInput(fd, data, ch);
+		std::cout << "Client <" << fd_Server << "> Data: "  << buff;
 	}
 }
 
@@ -50,12 +57,11 @@ int Server::be_ready_for_connection()
     add.sin_family=AF_INET;
     add.sin_port=htons(this->port);
    this->fd_Server = socket(AF_INET,SOCK_STREAM,0);
-   if( this->fd_Server==-1){
-    throw(std::runtime_error("failed to create socket"));
-   }
+//    if( this->fd_Server==-1)
+//     throw(std::runtime_error("failed to create socket"));
 
     //active non_blocking socket
-    int en = 1;
+    int en =1;
     if(setsockopt( this->fd_Server, SOL_SOCKET, SO_REUSEADDR, &en, sizeof(en)) == -1) //-> set the socket option (SO_REUSEADDR) to reuse the address
         throw(std::runtime_error("faild to set option (SO_REUSEADDR) on socket"));
     if (fcntl( this->fd_Server, F_SETFL, O_NONBLOCK) == -1) //-> set the socket option (O_NONBLOCK) for non-blocking socket
@@ -79,7 +85,7 @@ int Server::be_ready_for_connection()
     while(1)
     {
         if(poll(&fds[0],fds.size(),-1) ==-1)
-            throw (std::runtime_error("our poll function failed"));
+            throw (std::runtime_error("our pool function failed"));
         for(size_t i = 0;i < fds.size();i++)
         {
             if(fds[i].revents & POLLIN)
@@ -98,25 +104,8 @@ int Server::be_ready_for_connection()
         }
     }
     close(this->fd_Server);
-    return 0;
+  
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 void Server::ClearClients(int fd){ //-> clear the clients
@@ -130,21 +119,3 @@ void Server::ClearClients(int fd){ //-> clear the clients
  }
 
 }
-int main(int ac,char **av)
-{
-    if(ac!=3)
-    {
-        std::cout<<"invalide arguments";
-        return 0;
-    }
-    try{
-        Server s;
-        s.port=atoi(av[1]);
-        s.pass=av[2];
-        s.be_ready_for_connection();
-    }
-    catch(exception &e){
-        cout << e.what();
-    }
-}
-

@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef SERVER_HPP
+#define SERVER_HPP
 #include <iostream>
 #include <vector> //-> for vector
 #include <sys/socket.h> //-> for socket()
@@ -9,44 +9,15 @@
 #include <unistd.h> //-> for close()
 #include <arpa/inet.h> //-> for inet_ntoa()
 #include <poll.h> //-> for poll()
-#include <cstring>
-#include <algorithm>
-#include <exception>
+#include <cstring>//for memset
+#include<sstream>
+#include"Client.hpp"
+#include <cstdlib>
 #include "Channel.hpp"
-
-#define ERR "\033[1;31mError:\033[0;0m\n\033[1m"
-#define RESET "\033[0;0m"
-
-using namespace std;
-
-class Client{
-    int fd;
-    std::string ip_add;
-    string  username;
-    public:
-        int getFd()
-        {
-            return fd;
-        };
-        void SetFd(int Fd)
-        {
-            fd = Fd;
-        }
-        void SetIppAdd(std::string ip)
-        {
-            ip_add = ip;
-
-        }
-        void setUser(string _username){
-            username = _username;
-        }
-        string getUser(){
-            return username;
-        }
-};
 
 class Channel;
 class Server{
+
     private:
     
     
@@ -54,17 +25,22 @@ class Server{
     //static bool signal;
     std::vector<struct pollfd>fds;
     public:
-    std::vector<Client> clients;
     Channel ch;
+    std::vector<Client> clients;
     int port;
+    int count;
     std::string pass;
         Server(){
             fd_Server = -1;
+            count = 0;
         }
     int be_ready_for_connection();
     void AcceptNewConnetinClient();
-    void ReceiveNewData(int fd, Channel& ch);
+    void ReceiveNewData(int fd, Channel ch);
     void ClearClients(int fd);
+    void sendToClient(int fd, const std::string& message);
+    void parseClientInput(int fd, const std::string& data, Channel ch);
 };
 void	ParseCmd(string cmd, Channel &ch, Server serv, int fd);
-void	createChannel(string arg, Channel &ch, string username, int fd);
+
+#endif

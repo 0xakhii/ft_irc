@@ -1,5 +1,8 @@
 #include "Server.hpp"
 #include "Channel.hpp"
+#include "Client.hpp"
+#include "kickcmd.hpp"
+#include "Invitecmd.hpp"
 
 void	splitArgs(string av[2], string args){
 	size_t spacePos = args.find_first_of(' ');
@@ -14,20 +17,14 @@ void	splitArgs(string av[2], string args){
 		av[1].clear();
 	}
 }
-string findUsernameByFd(Server& serv, int fd) {
+string getUserbyfd(Server& serv, int fd) {
 	for (size_t i = 0; i < serv.clients.size(); i++) {
 		if (serv.clients[i].getFd() == fd)
 			return serv.clients[i].getUsername();
 	}
 	return "";
 }
-string findUsernameByFd(Server& serv, int fd) {
-	for (size_t i = 0; i < serv.clients.size(); i++) {
-		if (serv.clients[i].getFd() == fd)
-			return serv.clients[i].getUsername();
-	}
-	return "";
-}
+
 void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 	(void)serv;
 	KickCmd k;
@@ -43,19 +40,17 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 			for(size_t i = 0; i < serv.clients.size(); i++){
 				if (serv.clients[i].getFd() == fd)
 					createChannel(av[0], ch, serv.clients[i].getUsername(), serv.clients[i].getFd());
-					createChannel(av[0], ch, serv.clients[i].getUsername(), serv.clients[i].getFd());
 			}
 		}
 		else if (cmd == "INVITE"){ // Invite a user to a channel.
 		}
 		else if (cmd == "KICK"){ // Kick a user from the channel.
-			k.kick(av, ch);
+			k.kick(av, ch, fd);
 		}
 		else if (cmd == "TOPIC"){ // Change or view the topic of the given channel.
 			// check the channel where the user run /topic
 			if (av[0][0] == '#'){
 				if (av[1].empty()){ // print the channel topic
-					string topic = string(YELLOW) + "Channel: " + av[0] + "TOPIC: " + RESET + ch.getTopic(&av[0][1]);
 					string topic = string(YELLOW) + "Channel: " + av[0] + "TOPIC: " + RESET + ch.getTopic(&av[0][1]);
 					send(fd, topic.c_str(), topic.size(), 0);
 				}
@@ -133,11 +128,7 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 			cout << "message: " << av[1] << endl;
 			for(size_t i = 0; i < serv.clients.size(); i++){
 				if (serv.clients[i].getUsername() == av[0]){
-					string toSend = string(YELLOW) + "PRIVATE MESSAGE FROM <" + findUsernameByFd(serv, fd) + "> " + RESET + av[1]; 
-					send(serv.clients[i].getFd(), toSend.c_str(), toSend.size(), 0);
-				}
-				if (serv.clients[i].getUsername() == av[0]){
-					string toSend = string(YELLOW) + "PRIVATE MESSAGE FROM <" + findUsernameByFd(serv, fd) + "> " + RESET + av[1]; 
+					string toSend = string(YELLOW) + "PRIVATE MESSAGE FROM <" + getUserbyfd(serv, fd) + "> " + RESET + av[1]; 
 					send(serv.clients[i].getFd(), toSend.c_str(), toSend.size(), 0);
 				}
 			}
@@ -155,7 +146,6 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 	else if (!cmd.empty()){
 		for(size_t i = 0; i < serv.clients.size(); i++){
 			if (serv.clients[i].getFd() == fd)
-				ch.broadcastMessage(ch.getJoinedChannel(serv.clients[i].getUsername()), cmd, fd, serv.clients[i].getUsername());
 				ch.broadcastMessage(ch.getJoinedChannel(serv.clients[i].getUsername()), cmd, fd, serv.clients[i].getUsername());
 		}
 	}

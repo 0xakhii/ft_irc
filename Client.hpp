@@ -1,5 +1,4 @@
-#ifndef CLIENT_HPP
-#define CLIENT_HPP
+#pragma once
 #include "Server.hpp"
 
 class Client{
@@ -36,4 +35,3 @@ class Client{
     bool hasNicknameReceived() { return hasNickname; }
     bool hasUsernameReceived() { return hasUsername; }
 };
-#endif

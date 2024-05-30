@@ -1,5 +1,4 @@
-#ifndef INVITECMD_HPP
-#define INVITECMD_HPP
+#pragma once
 
 #include "Channel.hpp"
 #include "Server.hpp"

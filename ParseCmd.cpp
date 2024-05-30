@@ -43,7 +43,8 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 		else if (cmd == "INVITE"){ // Invite a user to a channel.
 		}
 		else if (cmd == "KICK"){ // Kick a user from the channel.
-			k.kick(av, ch);
+			k.client_name = getUserbyFd(serv, fd);
+			k.kick(av, ch,fd);
 		}
 		else if (cmd == "TOPIC"){ // Change or view the topic of the given channel.
 			// check the channel where the user run /topic

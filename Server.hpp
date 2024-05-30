@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SERVER_HPP
+#define SERVER_HPP
 
 #include <iostream>
 #include <vector> //-> for vector
@@ -18,12 +19,12 @@
 #define RESET "\033[0;0m"
 
 using namespace std;
-
 class Client{
+    
+    public:
     int fd;
     std::string ip_add;
     string  username;
-    public:
         int getFd()
         {
             return fd;
@@ -63,8 +64,10 @@ class Server{
         }
     int be_ready_for_connection();
     void AcceptNewConnetinClient();
-    void ReceiveNewData(int fd, Channel& ch);
+    void ReceiveNewData(int fd, Channel &ch);
     void ClearClients(int fd);
 };
 void	ParseCmd(string cmd, Channel &ch, Server serv, int fd);
 void	createChannel(string arg, Channel &ch, string username, int fd);
+
+#endif

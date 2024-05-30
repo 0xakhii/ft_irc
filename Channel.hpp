@@ -12,17 +12,19 @@
 #define YELLOW "\033[1;33m"
 using namespace std;
 class KickCmd;
+class Server;
 class Channel {
 	private:
-		struct ChannelData {
+		
+		
+	public:
+	struct ChannelData {
 			string name;
 			string topic;
 			set<string> operators;
 			map<string, int> userList;
 			int userLimit;
-		};
-		map<string, ChannelData> Channels;
-	public:
+		};map<string, ChannelData> Channels;
 		bool hasChannel(const string& channelName) const {
 			return Channels.count(channelName) > 0;
 		}
@@ -120,3 +122,4 @@ class Channel {
 		}
 		
 };
+string	getUserbyFd(Server serv, int fd);

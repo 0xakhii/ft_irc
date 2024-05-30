@@ -6,7 +6,12 @@
 class Channel;
 class KickCmd{
     public:
-        void kick(std::string av[2], Channel &ch);
+    std::string client_name;
+    int kicked_fd;
+    KickCmd();
+    ~KickCmd();
+        void kick(std::string av[2], Channel &ch,int fd);
+       
 };
-
+ void send_response(int fd, std::string response);
 #endif

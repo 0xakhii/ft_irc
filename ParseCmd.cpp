@@ -21,6 +21,13 @@ string findUsernameByFd(Server& serv, int fd) {
 	}
 	return "";
 }
+string findUsernameByFd(Server& serv, int fd) {
+	for (size_t i = 0; i < serv.clients.size(); i++) {
+		if (serv.clients[i].getFd() == fd)
+			return serv.clients[i].getUsername();
+	}
+	return "";
+}
 void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 	(void)serv;
 	KickCmd k;
@@ -36,6 +43,7 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 			for(size_t i = 0; i < serv.clients.size(); i++){
 				if (serv.clients[i].getFd() == fd)
 					createChannel(av[0], ch, serv.clients[i].getUsername(), serv.clients[i].getFd());
+					createChannel(av[0], ch, serv.clients[i].getUsername(), serv.clients[i].getFd());
 			}
 		}
 		else if (cmd == "INVITE"){ // Invite a user to a channel.
@@ -48,11 +56,13 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 			if (av[0][0] == '#'){
 				if (av[1].empty()){ // print the channel topic
 					string topic = string(YELLOW) + "Channel: " + av[0] + "TOPIC: " + RESET + ch.getTopic(&av[0][1]);
+					string topic = string(YELLOW) + "Channel: " + av[0] + "TOPIC: " + RESET + ch.getTopic(&av[0][1]);
 					send(fd, topic.c_str(), topic.size(), 0);
 				}
 				else{
 					for(size_t i = 0; i < serv.clients.size(); i++){
 						if (serv.clients[i].getFd() == fd){
+							if (!ch.setTopic(&av[0][1], av[1], serv.clients[i].getUsername()))
 							if (!ch.setTopic(&av[0][1], av[1], serv.clients[i].getUsername()))
 								throw runtime_error(string(ERR) + "Can't set a new topic\n" + RESET);
 						}
@@ -73,6 +83,7 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 						case 'o': // Give channel operator privilege
 							for(size_t i = 0; i < serv.clients.size(); i++){
 								if (serv.clients[i].getFd() == fd){
+									ch.addOperator(av[0], serv.clients.back().getUsername());
 									ch.addOperator(av[0], serv.clients.back().getUsername());
 								}
 							}
@@ -97,6 +108,7 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 						case 'o': // take channel operator privilege
 							for(size_t i = 0; i < serv.clients.size(); i++){
 								if (serv.clients[i].getFd() == fd)
+									ch.removeOperator(av[0], serv.clients.back().getUsername());
 									ch.removeOperator(av[0], serv.clients.back().getUsername());
 							}
 							break;
@@ -124,6 +136,10 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 					string toSend = string(YELLOW) + "PRIVATE MESSAGE FROM <" + findUsernameByFd(serv, fd) + "> " + RESET + av[1]; 
 					send(serv.clients[i].getFd(), toSend.c_str(), toSend.size(), 0);
 				}
+				if (serv.clients[i].getUsername() == av[0]){
+					string toSend = string(YELLOW) + "PRIVATE MESSAGE FROM <" + findUsernameByFd(serv, fd) + "> " + RESET + av[1]; 
+					send(serv.clients[i].getFd(), toSend.c_str(), toSend.size(), 0);
+				}
 			}
 		}
 		else if (cmd == "QUIT"){ // Terminate a client’s connection to the server.
@@ -139,6 +155,7 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 	else if (!cmd.empty()){
 		for(size_t i = 0; i < serv.clients.size(); i++){
 			if (serv.clients[i].getFd() == fd)
+				ch.broadcastMessage(ch.getJoinedChannel(serv.clients[i].getUsername()), cmd, fd, serv.clients[i].getUsername());
 				ch.broadcastMessage(ch.getJoinedChannel(serv.clients[i].getUsername()), cmd, fd, serv.clients[i].getUsername());
 		}
 	}

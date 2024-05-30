@@ -9,6 +9,7 @@
 #include"kickcmd.hpp"
 #define ERR "\033[1;31mError:\033[0;0m\n\033[1m"
 #define YELLOW "\033[1;33m"
+#define YELLOW "\033[1;33m"
 #define RESET "\033[0;0m"
 using namespace std;
 class KickCmd;
@@ -63,6 +64,7 @@ class Channel {
 		bool addUser(const string& channelName, const string& username, int fd) {
 			Channels[channelName].userList[username] = fd;
 			broadcastMessage(channelName, "has joind the channel\n", fd, username);
+			broadcastMessage(channelName, "has joind the channel\n", fd, username);
 			return true;
 		}
 		bool removeUser(const string& channelName, const string& username) {
@@ -111,11 +113,15 @@ class Channel {
 			for (map<string, int>::const_iterator it = userList.begin(); it != userList.end(); ++it) {
 				cout << "Broadcasting message to user: " << it->first << endl;
 				string toSend = string(YELLOW) + "#" + channelName + ":\n" + username + ": " + RESET + message;
+				string toSend = string(YELLOW) + "#" + channelName + ":\n" + username + ": " + RESET + message;
 				if (fd != it->second){
 					send(it->second, toSend.c_str(), toSend.size(), 0);
 				}
 			}
 		}
 };
+
+void	createChannel(string arg, Channel &ch, string username, int fd);
+
 
 void	createChannel(string arg, Channel &ch, string username, int fd);

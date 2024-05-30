@@ -1,4 +1,6 @@
-#pragma once
+#ifndef SERVER_HPP
+#define SERVER_HPP
+
 #include <iostream>
 #include <vector> //-> for vector
 #include <sys/socket.h> //-> for socket()
@@ -45,4 +47,6 @@ class Server{
     void sendToClient(int fd, const std::string& message);
     void parseClientInput(int fd, const std::string& data, Channel ch);
 };
-void	ParseCmd(string cmd, Channel &ch, Server serv, int fd);
+void	ParseCmd(std::string cmd, Channel &ch, Server serv, int fd);
+
+#endif

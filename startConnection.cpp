@@ -104,6 +104,7 @@ int Server::be_ready_for_connection()
         }
     }
     close(this->fd_Server);
+    return 0;
   
 }
 

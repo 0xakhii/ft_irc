@@ -20,9 +20,11 @@ class Channel {
 			set<string> operators;
 			map<string, int> userList;
 			int userLimit;
+			vector<string> invitelist;
 		};
 		map<string, ChannelData> Channels;
 	public:
+		
 		bool hasChannel(const string& channelName) const {
 			return Channels.count(channelName) > 0;
 		}
@@ -63,6 +65,10 @@ class Channel {
 		bool addUser(const string& channelName, const string& username, int fd) {
 			Channels[channelName].userList[username] = fd;
 			broadcastMessage(channelName, "has joind the channel\n", fd, username);
+			return true;
+		}
+		bool addinviteeduser(const string& chan_name, const string& username) {
+			Channels[chan_name].invitelist.push_back(username);
 			return true;
 		}
 		bool removeUser(const string& channelName, const string& username) {

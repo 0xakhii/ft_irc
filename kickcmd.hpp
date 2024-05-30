@@ -14,4 +14,5 @@ class KickCmd{
        
 };
  void send_response(int fd, std::string response);
+ int findUserFdByUsername(const std::map<std::string, int>& userMap,  std::string& username);
 #endif

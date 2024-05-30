@@ -3,6 +3,7 @@
 
 KickCmd::KickCmd(){
     client_name = "";
+    kicked_fd = -1;
 }
 
 KickCmd::~KickCmd(){}
@@ -46,7 +47,7 @@ void KickCmd::kick(std::string av[2], Channel &ch,int fd){
         return;
     }
     std::map<std::string,int> user_list = ch.getUserList(channel);
-    int kicked_fd = findUserFdByUsername(user_list, user);
+    kicked_fd = findUserFdByUsername(user_list, user);
     std::cout<<"Kicked fd:--->>>> "<<kicked_fd<<std::endl;
     if(kicked_fd == -1){
         std::cout<<"User not found"<<std::endl;

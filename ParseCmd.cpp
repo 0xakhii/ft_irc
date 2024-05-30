@@ -4,6 +4,7 @@
 #include "kickcmd.hpp"
 #include "Invitecmd.hpp"
 
+
 void	splitArgs(string av[2], string args){
 	size_t spacePos = args.find_first_of(' ');
 	while (spacePos != string::npos && args[spacePos + 1] == ' ')
@@ -25,9 +26,10 @@ string getUserbyfd(Server& serv, int fd) {
 	return "";
 }
 
-void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
+void	ParseCmd(std::string cmd, Channel &ch, Server serv, int fd){
 	(void)serv;
 	KickCmd k;
+	Invitecmd inv;
 	if (cmd.empty())
 		throw runtime_error(string(ERR) + "Invalid command\n" + RESET);
 	else if (cmd[0] == '/'){
@@ -43,8 +45,11 @@ void	ParseCmd(string cmd, Channel &ch, Server serv, int fd){
 			}
 		}
 		else if (cmd == "INVITE"){ // Invite a user to a channel.
+			inv.client_name = getUserbyfd(serv, fd);
+			inv.invite(av, ch, fd);
 		}
 		else if (cmd == "KICK"){ // Kick a user from the channel.
+			k.client_name = getUserbyfd(serv, fd);
 			k.kick(av, ch, fd);
 		}
 		else if (cmd == "TOPIC"){ // Change or view the topic of the given channel.

@@ -23,7 +23,7 @@ void Server::AcceptNewConnetinClient(){
   
  }
 
-void Server::ReceiveNewData(int fd, Channel ch)
+void Server::ReceiveNewData(int fd)
 {
     //this is the buff thata we wiil store our data received in
 	char buff[1024]; 
@@ -96,7 +96,7 @@ int Server::be_ready_for_connection()
                 }
                 else{
                      
-                    ReceiveNewData(fds[i].fd, ch);
+                    ReceiveNewData(fds[i].fd);
                     //std::cout<<"receive a new data from a registred client"<<std::endl;
                 }
             }

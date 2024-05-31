@@ -21,6 +21,7 @@ void Server::sendToClient(int fd, const std::string& message) {
 
 
 void Server::parseClientInput(Client& new_client) {
+    count = 0;
     while(1){
         char buff[1024]; 
         memset(buff, 0, sizeof(buff)); 

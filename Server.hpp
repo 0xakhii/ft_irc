@@ -42,7 +42,7 @@ class Server{
         }
     int be_ready_for_connection();
     void AcceptNewConnetinClient();
-    void ReceiveNewData(int fd, Channel ch);
+    void ReceiveNewData(int fd);
     void ClearClients(int fd);
     void sendToClient(int fd, const std::string& message);
     void parseClientInput(Client& new_client);

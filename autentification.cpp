@@ -46,39 +46,42 @@ if(command=="quit")
                     std::string pass;
                     linestream >> pass;  // Read the password
                     client.setPassword(pass);
-                    std::cout<<"my password"<<pass<<std::endl;
+                    std::cout<<"my password: "<<pass<<std::endl;
                     count =1;
 
                     // Prompt for nickname after receiving password
                     std::string nicknamePrompt = "Please enter your nickname:\r\n";
                     send(fd, nicknamePrompt.c_str(), nicknamePrompt.size(), 0);
+                    client.setPasswordReceived(true);
                 } else if (client.hasPasswordReceived() && !client.hasNicknameReceived() && command == "NICK"&&count ==1) {
                     std::string nick;
                     linestream >> nick;  // Read the nickname
                     client.setNickname(nick);
-                   std::cout<<"my nick : "<<nick<<std::endl;
+                   std::cout<<"my nick: "<<nick<<std::endl;
 
                     // Prompt for username after receiving nickname
                     std::string usernamePrompt = "Please enter your username:\r\n";
                     send(fd, usernamePrompt.c_str(), usernamePrompt.size(), 0);
                     count=2;
+                    client.setNicknameReceived(true);
                 } else if (client.hasPasswordReceived() && client.hasNicknameReceived() && !client.hasUsernameReceived() && command == "USER"&&count ==2) {
                     std::string user, mode, unused, realname;
              
                     client.setUsername(user);
-                    std::cout<<"my User : "<<user<<std::endl;
+                    std::cout<<"my User: "<<user<<std::endl;
 
                     // Client setup is complete, you can now proceed with further handling
                     std::string welcomeMessage = ":myserver 001 " + client.getNickname()  + " :Welcome to the IRC server\r\n";
                     std::string yourHostMsg = ":myserver 002 " + client.getNickname() + " :Your host is myserver\r\n";
                     std::string createdMsg = ":myserver 003 " + client.getNickname()+ " :This server was created just now\r\n";
-                     std::string myInfoMsg = ":myserver 004 " + client.getNickname()+ " myserver v1.0 i\r\n";
+                    std::string myInfoMsg = ":myserver 004 " + client.getNickname()+ " myserver v1.0 i\r\n";
   
                     send(fd, welcomeMessage.c_str(), welcomeMessage.size(), 0);
                     send(fd, yourHostMsg.c_str(), welcomeMessage.size(), 0);
                     send(fd, createdMsg.c_str(), welcomeMessage.size(), 0);
                     send(fd, myInfoMsg.c_str(), welcomeMessage.size(), 0);
-                    ParseCmd((string)data, ch, *this, fd);
+                    client.setUsernameReceived(true);
+
                 }
                 }
                 break;

@@ -44,9 +44,16 @@ void Server::ReceiveNewData(int fd, Channel ch)
         // static ch nwebuff += buff;
         // if ( != std::npos)
         std::string data(buff);
-        
-        parseClientInput(fd, data, ch);
-		std::cout << "Client <" << fd_Server << "> Data: "  << buff;
+        for (size_t i = 0; i < clients.size(); i++){
+            if (clients[i].getFd() == fd){
+                if (!clients[i].hasNicknameReceived() || !clients[i].hasPasswordReceived()
+                    || !clients[i].hasUsernameReceived())
+                    parseClientInput(fd, data, ch);
+                else
+                    ParseCmd(data, ch, *this, fd);
+            }
+        }
+		std::cout << "Client <" << fd_Server << "> Data: "  << data;
 	}
 }
 

@@ -32,6 +32,9 @@ class Client{
     std::string getPassword() { return Password; }
     void setPassword(std::string pass) { Password = pass; }
     bool hasPasswordReceived() { return hasPassword; }
+    void setPasswordReceived(bool hasPassword) { this->hasPassword = hasPassword; }
+    void setNicknameReceived(bool hasNickname) { this->hasNickname = hasNickname; }
+    void setUsernameReceived(bool hasUsername) { this->hasUsername = hasUsername; }
     bool hasNicknameReceived() { return hasNickname; }
     bool hasUsernameReceived() { return hasUsername; }
 };

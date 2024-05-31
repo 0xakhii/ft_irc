@@ -44,7 +44,7 @@ void Server::ReceiveNewData(int fd)
         // static ch nwebuff += buff;
         // if ( != std::npos)
         std::string data(buff);
-        ParseCmd(data, ch, *this, fd);
+        ParseCmd(data, *this, fd);
 		std::cout << "Client <" << fd_Server << "> Data: "  << data;
 	}
 }

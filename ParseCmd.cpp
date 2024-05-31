@@ -26,7 +26,7 @@ string getUserbyfd(Server& serv, int fd) {
 	return "";
 }
 
-void	ParseCmd(std::string cmd, Channel &ch, Server serv, int fd){
+void	ParseCmd(string cmd, Server& serv, int fd){
 	(void)serv;
 	KickCmd k;
 	Invitecmd inv;
@@ -41,50 +41,54 @@ void	ParseCmd(std::string cmd, Channel &ch, Server serv, int fd){
 		if (cmd == "JOIN"){ // Join a channel. If the channel specified does not exist, a new one will be created with the given name.
 			for(size_t i = 0; i < serv.clients.size(); i++){
 				if (serv.clients[i].getFd() == fd)
-					createChannel(av[0], ch, serv.clients[i].getUsername(), serv.clients[i].getFd());
+					createChannel(av[0], serv.ch, serv.clients[i].getUsername(), serv.clients[i].getFd());
 			}
 		}
 		else if (cmd == "INVITE"){ // Invite a user to a channel.
 			inv.client_name = getUserbyfd(serv, fd);
-			inv.invite(av, ch, fd);
+			inv.invite(av, serv.ch, fd);
 		}
 		else if (cmd == "KICK"){ // Kick a user from the channel.
 			k.client_name = getUserbyfd(serv, fd);
-			k.kick(av, ch, fd);
+			k.kick(av, serv.ch, fd);
 		}
 		else if (cmd == "TOPIC"){ // Change or view the topic of the given channel.
 			// check the channel where the user run /topic
 			if (av[0][0] == '#'){
 				if (av[1].empty()){ // print the channel topic
-					string topic = string(YELLOW) + "Channel: " + av[0] + "TOPIC: " + RESET + ch.getTopic(&av[0][1]);
+					string topic = string(YELLOW) + "Channel: " + av[0] + "TOPIC: " + RESET + serv.ch.getTopic(&av[0][1]);
 					send(fd, topic.c_str(), topic.size(), 0);
 				}
 				else{
 					for(size_t i = 0; i < serv.clients.size(); i++){
 						if (serv.clients[i].getFd() == fd){
-							if (!ch.setTopic(&av[0][1], av[1], serv.clients[i].getUsername()))
-							if (!ch.setTopic(&av[0][1], av[1], serv.clients[i].getUsername()))
-								throw runtime_error(string(ERR) + "Can't set a new topic\n" + RESET);
+							if (!serv.ch.setTopic(&av[0][1], av[1], serv.clients[i].getUsername()))
+								cout << ERR <<  "Can't set a new topic\n" << RESET;
 						}
 					}
 				}
 			}
 			else
-				throw runtime_error(string(ERR) + "Invalid Channel Name\n" + RESET);
+				cout << ERR <<  "Invalid Channel Name\n" << RESET;
 		}
 		else if (cmd == "MODE"){ // Set or remove options (or modes) to a given target.
 			char modeSign = av[1][0];
 			char modeFlag = av[1][1];
 			if (av[0][0] == '#'){
 				av[0] = &av[0][1];
+				av[1] = &av[1][2];
 				if (modeSign == '+'){
 					switch (modeFlag)
 					{
 						case 'o': // Give channel operator privilege
 							for(size_t i = 0; i < serv.clients.size(); i++){
-								if (serv.clients[i].getFd() == fd){
-									ch.addOperator(av[0], serv.clients.back().getUsername());
-									ch.addOperator(av[0], serv.clients.back().getUsername());
+								// check for spaces before and newline in the end;
+								cout << "username: " << av[1] << endl;
+								if (serv.clients[i].getUsername() == av[1]){
+									if (serv.ch.addOperator(av[0], serv.clients[i].getUsername())){
+										string toSend = string(YELLOW) + "You are now an operator\n" + RESET;
+										send(serv.clients[i].getFd(), toSend.c_str(), toSend.size(), 0);
+									}
 								}
 							}
 							break;
@@ -97,7 +101,7 @@ void	ParseCmd(std::string cmd, Channel &ch, Server serv, int fd){
 						case 't': //Set the restrictions of the TOPIC command to channel operators
 							break;
 						default:
-							throw runtime_error(string(ERR) + "Invalid Mode Flag\n" + RESET);
+							cout << ERR << "Invalid Mode Flag\n" << RESET;
 							break;
 					}
 					cout << "mode <+>: " << modeFlag << endl;
@@ -108,8 +112,7 @@ void	ParseCmd(std::string cmd, Channel &ch, Server serv, int fd){
 						case 'o': // take channel operator privilege
 							for(size_t i = 0; i < serv.clients.size(); i++){
 								if (serv.clients[i].getFd() == fd)
-									ch.removeOperator(av[0], serv.clients.back().getUsername());
-									ch.removeOperator(av[0], serv.clients.back().getUsername());
+									serv.ch.removeOperator(av[0], serv.clients.back().getUsername());
 							}
 							break;
 						case 'i': // remove Invite-only channel
@@ -151,7 +154,7 @@ void	ParseCmd(std::string cmd, Channel &ch, Server serv, int fd){
 	else if (!cmd.empty()){
 		for(size_t i = 0; i < serv.clients.size(); i++){
 			if (serv.clients[i].getFd() == fd)
-				ch.broadcastMessage(ch.getJoinedChannel(serv.clients[i].getUsername()), cmd, fd, serv.clients[i].getUsername());
+				serv.ch.broadcastMessage(serv.ch.getJoinedChannel(serv.clients[i].getUsername()), cmd, fd, serv.clients[i].getUsername());
 		}
 	}
 }

@@ -47,6 +47,6 @@ class Server{
     void sendToClient(int fd, const std::string& message);
     void parseClientInput(Client& new_client);
 };
-void	ParseCmd(std::string cmd, Channel &ch, Server serv, int fd);
+void	ParseCmd(std::string cmd, Server& serv, int fd);
 
 #endif

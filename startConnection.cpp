@@ -14,10 +14,10 @@ void Server::AcceptNewConnetinClient(){
     clientPoll.events=POLLIN;
     clientPoll.revents=0;
     new_client.SetFd(accept_cl); //-> set the client file descriptor
- new_client.SetIppAdd(inet_ntoa((client_add.sin_addr))); //-> convert the ip address to string and set it
+    new_client.SetIppAdd(inet_ntoa((client_add.sin_addr))); //-> convert the ip address to string and set it
+    parseClientInput(new_client);
  clients.push_back(new_client); //-> add the client to the vector of clients
  fds.push_back(clientPoll); //-> add the client socket to the pollfd
-
  std::cout <<"client connected seccefully" << std::endl;
  // Send IRC welcome messages
   
@@ -29,8 +29,8 @@ void Server::ReceiveNewData(int fd, Channel ch)
 	char buff[1024]; 
     Client c;
 
-    //clear the buffer
 	memset(buff, 0, sizeof(buff)); 
+    //clear the buffer
 	ssize_t bytes = recv(fd, buff, sizeof(buff) - 1 , 0); 
     //if the client disconnected
 	if(bytes <= 0){ 
@@ -44,15 +44,7 @@ void Server::ReceiveNewData(int fd, Channel ch)
         // static ch nwebuff += buff;
         // if ( != std::npos)
         std::string data(buff);
-        for (size_t i = 0; i < clients.size(); i++){
-            if (clients[i].getFd() == fd){
-                if (!clients[i].hasNicknameReceived() || !clients[i].hasPasswordReceived()
-                    || !clients[i].hasUsernameReceived())
-                    parseClientInput(fd, data, ch);
-                else
-                    ParseCmd(data, ch, *this, fd);
-            }
-        }
+        ParseCmd(data, ch, *this, fd);
 		std::cout << "Client <" << fd_Server << "> Data: "  << data;
 	}
 }

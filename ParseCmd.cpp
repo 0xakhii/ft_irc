@@ -27,7 +27,6 @@ string getUserbyfd(Server& serv, int fd) {
 }
 
 void	ParseCmd(string cmd, Server& serv, int fd){
-	(void)serv;
 	KickCmd k;
 	Invitecmd inv;
 	if (cmd.empty())

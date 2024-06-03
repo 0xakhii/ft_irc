@@ -1,9 +1,8 @@
 NAME = ircserv
 
 SRCS = ParseCmd.cpp Channel.cpp kickcmd.cpp \
-		startConnection.cpp autentification.cpp main.cpp
-SRCS = ParseCmd.cpp Channel.cpp kickcmd.cpp \
 		startConnection.cpp autentification.cpp main.cpp Invitecmd.cpp \
+		server_utils.cpp
 
 CXX = c++
 

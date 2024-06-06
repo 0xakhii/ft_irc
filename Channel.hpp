@@ -122,6 +122,62 @@ class Channel {
 				}
 			}
 		}
+		bool removeInviteOnly(const string& channelName) {
+			if (!hasChannel(channelName)) {
+				return false;
+			}
+			Channels[channelName].invitelist.clear();
+			return true;
+		}
+		bool removeUserLimit(const string& channelName) {
+			if (!hasChannel(channelName)) {
+				return false;
+			}
+			Channels[channelName].userLimit = -1;
+			return true;
+		}
+		bool removeChannelKey(const string& channelName) {
+			if (!hasChannel(channelName)) {
+				return false;
+			}
+			Channels[channelName].invitelist.clear();
+			return true;
+		}
+		bool removeTopicRestrictions(const string& channelName) {
+			if (!hasChannel(channelName)) {
+				return false;
+			}
+			Channels[channelName].invitelist.clear();
+			return true;
+		}
+		bool setInviteOnly(const string& channelName) {
+			if (!hasChannel(channelName)) {
+				return false;
+			}
+			Channels[channelName].invitelist.clear();
+			return true;
+		}
+		bool setUserLimit(const string& channelName, int limit) {
+			if (!hasChannel(channelName)) {
+				return false;
+			}
+			Channels[channelName].userLimit = limit;
+			return true;
+		}
+		bool setChannelKey(const string& channelName, const string& key) {
+			if (!hasChannel(channelName)) {
+				return false;
+			}
+			Channels[channelName].invitelist.clear();
+			return true;
+		}
+		bool setTopicRestrictions(const string& channelName) {
+			if (!hasChannel(channelName)) {
+				return false;
+			}
+			Channels[channelName].invitelist.clear();
+			return true;
+		}
 };
 
 void	createChannel(string arg, Channel &ch, string username, int fd);

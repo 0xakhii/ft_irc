@@ -7,7 +7,8 @@ class Client{
     std::string Nickname;
     std::string Username;
     std::string Password;
-      bool hasPassword;
+    std::string realName;
+    bool hasPassword;
     bool hasNickname;
     bool hasUsername;
     public:
@@ -24,7 +25,8 @@ class Client{
             ip_add = ip;
 
         }
-       
+    std::string getRealname() { return realName; }
+    void setRealname(std::string real) { realName = real; }
     std::string getNickname() { return Nickname; }
     void setNickname(std::string nick) { Nickname = nick; }
     std::string getUsername() { return Username; }

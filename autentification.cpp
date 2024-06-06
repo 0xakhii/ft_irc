@@ -70,11 +70,24 @@ void Server::parseClientInput(Client& new_client, int fd) {
                     send(fd, usernamePrompt.c_str(), usernamePrompt.size(), 0);
                     count=2;
                 } else if (new_client.hasPasswordReceived() && new_client.hasNicknameReceived() && !new_client.hasUsernameReceived() && command == "USER"&&count ==2) {
-                    std::string user, mode, unused, realname;
-                    linestream >> user;
-                    new_client.setUsername(user);
+                    std::istringstream iss(command);
+                    std::string comd, username, realname;
+                    std::string unusedInt;
+                    std::string unusedChar;
+                    iss >> comd >> username >> unusedInt >> unusedChar;
+                    std::getline(iss, realname);
+                    size_t pos = realname.find_first_not_of(" ");
+                    if (pos != std::string::npos)
+                        realname = realname.substr(pos);
+                    if(username.empty() || unusedInt.empty() || unusedChar.empty() || realname.empty())
+                    {
+                        std::string pass_err=colorCode(ERR_NEEDMOREPARAMS(command),5);
+                        send(fd,pass_err.c_str(),pass_err.size(),0);
+                        continue;
+                    }
+                    new_client.setUsername(username);
+                    new_client.setRealname(realname);
                     new_client.setUsernameReceived(true);
-                    // Client setup is complete, you can now proceed with further handling
                 }
             }
         }

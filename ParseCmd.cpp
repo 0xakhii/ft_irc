@@ -91,15 +91,30 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 								}
 							}
 							break;
+						 // Set Invite-only channel
 						case 'i': // Set Invite-only channel
+							serv.ch.setInviteOnly(av[0]);
 							break;
 						case 'l': // Set the user limit to channel
+							if (!av[1].empty()) {
+								int limit = stoi(av[1]);
+								serv.ch.setUserLimit(av[0], limit);
+							} else {
+								cout << ERR << "User limit not specified\n" << RESET;
+							}
 							break;
 						case 'k': // Set the channel key (password)
+							if (!av[1].empty()) {
+								serv.ch.setChannelKey(av[0], av[1]);
+							} else {
+								cout << ERR << "Channel key not specified\n" << RESET;
+							}
 							break;
-						case 't': //Set the restrictions of the TOPIC command to channel operators
+						case 't': // Set the restrictions of the TOPIC command to channel operators
+							serv.ch.setTopicRestrictions(av[0]);
 							break;
 						default:
+							throw runtime_error(string(ERR) + "Invalid Mode Flag\n" + RESET);
 							cout << ERR << "Invalid Mode Flag\n" << RESET;
 							break;
 					}
@@ -115,12 +130,16 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 							}
 							break;
 						case 'i': // remove Invite-only channel
+							serv.ch.removeInviteOnly(av[0]);
 							break;
 						case 'l': // remove the user limit to channel
+							serv.ch.removeUserLimit(av[0]);
 							break;
 						case 'k': // remove the channel key (password)
+							serv.ch.removeChannelKey(av[0]);
 							break;
 						case 't': // remove the restrictions of the TOPIC command to channel operators
+							serv.ch.removeTopicRestrictions(av[0]);
 							break;
 						default:
 							throw runtime_error(string(ERR) + "Invalid Mode Flag\n" + RESET);

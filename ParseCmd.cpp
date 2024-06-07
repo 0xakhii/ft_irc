@@ -99,14 +99,16 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 							if (!av[1].empty()) {
 								int limit = stoi(av[1]);
 								serv.ch.setUserLimit(av[0], limit);
-							} else {
+							}
+							else {
 								cout << ERR << "User limit not specified\n" << RESET;
 							}
 							break;
 						case 'k': // Set the channel key (password)
 							if (!av[1].empty()) {
 								serv.ch.setChannelKey(av[0], av[1]);
-							} else {
+							}
+							else{
 								cout << ERR << "Channel key not specified\n" << RESET;
 							}
 							break;

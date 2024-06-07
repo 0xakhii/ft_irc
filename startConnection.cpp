@@ -1,5 +1,36 @@
 #include"Server.hpp"
-#include"Channel.hpp"
+
+
+bool Server::Signal = false;
+void Server::SignalHandler(int signum)
+{
+	(void)signum;
+	std::cout << std::endl << "Signal Received!" << std::endl;
+	Server::Signal = true; //-> set the static boolean to true to stop the server
+}
+
+void Server::ClearClients(int fd){ //-> clear the clients
+for(size_t i = 0; i < fds.size(); i++){ //-> remove the client from the pollfd
+  if (fds[i].fd == fd)
+   {fds.erase(fds.begin() + i); break;}
+ }
+
+for(size_t i = 0; i < clients.size(); i++){ //-> remove the client from the vector of clients
+  if (clients[i].getFd() == fd)
+   {clients.erase(clients.begin() + i); break;}
+ }
+
+}
+void Server::CloseFds(){
+	for(size_t i = 0; i < clients.size(); i++){ //-> close all the clients
+		std::cout << RED << "Client <" << clients[i].getFd() << "> Disconnected" << WHI << std::endl;
+		close(clients[i].getFd());
+	}
+	if (fd_Server != -1){ //-> close the server socket
+		std::cout << RED << "Server <" << fd_Server << "> Disconnected" << WHI << std::endl;
+		close(fd_Server);
+	}
+}
 
 void Server::AcceptNewConnetinClient(){
     Client new_client;
@@ -7,21 +38,19 @@ void Server::AcceptNewConnetinClient(){
     struct pollfd clientPoll;
     socklen_t length = sizeof(client_add);
     int accept_cl = accept(fd_Server,(sockaddr *)&(client_add),&length);
-    if (accept_cl == -1){
-        std::cout <<RED<< "client cannot connect" << std::endl;
-        return;
-    }
+        if (accept_cl == -1)
+    {std::cout <<RED<< "client cannot connect" << std::endl; return;}
     clientPoll.fd=accept_cl;
     clientPoll.events=POLLIN;
     clientPoll.revents=0;
     new_client.SetFd(accept_cl); //-> set the client file descriptor
     new_client.SetIppAdd(inet_ntoa((client_add.sin_addr))); //-> convert the ip address to string and set it
-    parseClientInput(new_client, accept_cl);
+    parseClientInput(new_client ,accept_cl); // -> parse the client input
+    clients.push_back(new_client); //-> add the client to the vector of clients
     fds.push_back(clientPoll); //-> add the client socket to the pollfd
-    clients.push_back(new_client); //-> add the client socket to the pollfd
     std::cout <<GRE<<"client connected seccefully" <<WHI<< std::endl;
- // Send IRC welcome messages
- }
+    // Send IRC welcome messages  
+}
 
 void Server::ReceiveNewData(int fd)
 {
@@ -29,12 +58,12 @@ void Server::ReceiveNewData(int fd)
 	char buff[1024]; 
     Client c;
 
-	memset(buff, 0, sizeof(buff)); 
     //clear the buffer
+	memset(buff, 0, sizeof(buff)); 
 	ssize_t bytes = recv(fd, buff, sizeof(buff) - 1 , 0); 
     //if the client disconnected
 	if(bytes <= 0){ 
-		std::cout  << "Client <" << fd << "> Disconnected" << std::endl;
+		std::cout  <<RED<< "Client <" << fd << "> Disconnected" << std::endl;
 	
 		close(fd);
 	}
@@ -44,12 +73,13 @@ void Server::ReceiveNewData(int fd)
         // static ch nwebuff += buff;
         // if ( != std::npos)
         std::string data(buff);
+        std::cout << "buf : " << data << "fin" <<std::endl;
         ParseCmd(data, *this, fd);
-		std::cout <<ORANGE<< "Client <" <<RESET<< fd <<ORANGE<< "> Data: "  << buff<<RESET;
+		std::cout <<ORANGE<< "Client <" <<RESET<< fd_Server <<ORANGE<< "> Data: "  << buff<<RESET;
 	}
 }
 
-int Server::be_ready_for_connection()
+void Server::be_ready_for_connection()
 {
     struct sockaddr_in add;
     struct pollfd NewPoll;
@@ -68,12 +98,12 @@ int Server::be_ready_for_connection()
       // Bind socket to address and port
     if (bind( this->fd_Server, (struct sockaddr *)&add, sizeof(add)) < 0) {
         std::cerr <<RED<< "Bind failed" << RESET<<std::endl;
-        return 1;
+        exit(1);
     }    
     // Listen for incoming connections
     if (listen( this->fd_Server, SOMAXCONN) == -1) {
         std::cerr <<RED<< "Listen failed" << RESET<<std::endl;
-        return 1;
+        exit(1);
     }
     NewPoll.fd =  this->fd_Server; //-> add the server socket to the pollfd
     NewPoll.events = POLLIN; //-> set the event to POLLIN for reading data
@@ -81,9 +111,9 @@ int Server::be_ready_for_connection()
     fds.push_back(NewPoll); //-> add the server socket to the pollfd
     std::cout<<GRE<<"server <"<< this->fd_Server<<">"<<GRE<<" and ready for receiving data"<<RESET<<std::endl;
     std::cout<<YEL<<"Waiting to accept conection"<<std::endl;
-    while(1)
+    while(Server::Signal == false&& Server::Signal == false)
     {
-        if(poll(&fds[0],fds.size(),-1) ==-1)
+        if(poll(&fds[0],fds.size(),-1) ==-1 && Server::Signal == false)
             throw (std::runtime_error("our pool function failed"));
         for(size_t i = 0;i < fds.size();i++)
         {
@@ -99,18 +129,5 @@ int Server::be_ready_for_connection()
             }
         }
     }
-    close(this->fd_Server);
-}
-
-
-void Server::ClearClients(int fd){ //-> clear the clients
- for(size_t i = 0; i < fds.size(); i++){ //-> remove the client from the pollfd
-  if (fds[i].fd == fd)
-   {fds.erase(fds.begin() + i); break;}
- }
- for(size_t i = 0; i < clients.size(); i++){ //-> remove the client from the vector of clients
-  if (clients[i].getFd() == fd)
-   {clients.erase(clients.begin() + i); break;}
- }
-
+    CloseFds();
 }

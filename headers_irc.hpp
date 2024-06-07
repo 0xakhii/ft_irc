@@ -6,3 +6,4 @@
 #define ERR_NOSUCHNICK(nick) (nick + " 401 :No such nick/channel\r\n")
 #define ERR_NOSUCHCHANNEL(channel) (": 403 " + channel + " :No such channel\r\n")
 #define RPL_ENDOFWHOIS(nickname) (nickname + " 318 :End of /WHOIS list\r\n")
+#define RPL_WELCOME(nickname)   (":irc.server.com 001 " + nickname + " :Welcome to the IRC Server, " + nickname + "!\r\n")

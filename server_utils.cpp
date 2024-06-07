@@ -1,9 +1,8 @@
 #include"Server.hpp"
 
-std::string Server::colorCode(const std::string& message, int color) {
+std::string Server:: colorCode(const std::string& message, int color) {
     std::stringstream ss;
-    (void)color;
-    ss << "\x03" << message << "\x03";
+    ss << "\x03" << color << message << "\x03";
     return ss.str();
 };
 
@@ -34,19 +33,19 @@ bool Server::prsNickname(std::string nickname,int fd)
     {
         if(nickname.empty())
         {
-            std::string pass_err=colorCode(ERR_ERRONEUSNICKNAME(nickname),5);
+            std::string pass_err=ERR_NONICKNAMEGIVEN();
             send(fd,pass_err.c_str(),pass_err.size(),0);
             return false;
         }
         else if(nickname == it->getNickname())
         {
-            std::string pass_err=colorCode(ERR_NICKNAMEINUSE(nickname),5);
-           send(fd,pass_err.c_str(),pass_err.size(),0);
+            std::string pass_err=ERR_NICKNAMEINUSE(nickname);
+            send(fd,pass_err.c_str(),pass_err.size(),0);
             return false;
         }
         else if(!validateNickname(nickname))
         {
-            std::string pass_err=colorCode(ERR_NICKNAMEINUSE(nickname),5);
+            std::string pass_err=ERR_ERRONEUSNICKNAME(nickname);
             send(fd,pass_err.c_str(),pass_err.size(),0);
             return false;
         }
@@ -54,4 +53,47 @@ bool Server::prsNickname(std::string nickname,int fd)
             return true;
     }
     return true;
+}
+
+bool Server::parsUSer(int i,std::string unusedInt,std::string unusedChar,std::string command,int fd,std::string realname,std::string username)
+{
+    for(std::vector<Client>::iterator it = clients.begin();it != clients.end();++it)
+    {
+    if(unusedInt != "0" && unusedChar != "*")
+    {
+        std::string pass_err=ERR_NEEDMOREPARAMS(command);
+        send(fd,pass_err.c_str(),pass_err.size(),0);
+        return false;
+    }
+    else if(i != 5)
+     {
+        std::string pass_err=ERR_NEEDMOREPARAMS(command);
+        send(fd,pass_err.c_str(),pass_err.size(),0);
+        return false;
+    }
+    else if(realname.empty())
+    {
+        std::string pass_err=ERR_NEEDMOREPARAMS(command);
+        send(fd,pass_err.c_str(),pass_err.size(),0);
+        return false;
+    }
+    else if(username == it->getUsername())
+    {
+        std::string pass_err=":server 462 " + it->getNickname() + " :You may not reregister\r\n";;
+        send(fd,pass_err.c_str(),pass_err.size(),0);
+        return false;
+    }
+    else if(!realname.empty() && realname[0] != ':')
+    {
+        std::string pass_err=ERR_NEEDMOREPARAMS(command);
+        send(fd,pass_err.c_str(),pass_err.size(),0);
+        return false;
+    }
+    else 
+    {
+        realname = realname.substr(1);
+        return true;
+    }
+}
+  return true;
 }

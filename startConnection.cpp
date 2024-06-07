@@ -45,7 +45,7 @@ void Server::AcceptNewConnetinClient(){
     clientPoll.revents=0;
     new_client.SetFd(accept_cl); //-> set the client file descriptor
     new_client.SetIppAdd(inet_ntoa((client_add.sin_addr))); //-> convert the ip address to string and set it
-    parseClientInput(new_client ,accept_cl); // -> parse the client input
+    // parseClientInput(new_client ,accept_cl); // -> parse the client input
     clients.push_back(new_client); //-> add the client to the vector of clients
     fds.push_back(clientPoll); //-> add the client socket to the pollfd
     std::cout <<GRE<<"client connected seccefully" <<WHI<< std::endl;
@@ -74,7 +74,14 @@ void Server::ReceiveNewData(int fd)
         // if ( != std::npos)
         std::string data(buff);
         std::cout << "buf : " << data << "fin" <<std::endl;
-        ParseCmd(data, *this, fd);
+        parseClientInput(fd, data);
+        for (size_t i = 0; i < clients.size(); i++){
+            if (clients[i].getFd() == fd){
+                if (clients[i].hasPasswordReceived() && clients[i].hasNicknameReceived()
+                    && clients[i].hasUsernameReceived())
+                    ParseCmd(data, *this, fd);
+            }
+        }
 		std::cout <<ORANGE<< "Client <" <<RESET<< fd_Server <<ORANGE<< "> Data: "  << buff<<RESET;
 	}
 }

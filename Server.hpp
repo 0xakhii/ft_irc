@@ -45,7 +45,7 @@ class Server{
         void AcceptNewConnetinClient();
         void ReceiveNewData(int fd);
         void ClearClients(int fd);
-        void parseClientInput(Client& new_client, int fd);
+        void parseClientInput(int fd, const std::string& data);
         bool prsNickname(std::string nickname,int fd);
         bool validateNickname(std::string nickname);
         std::string colorCode(const std::string& message, int color);

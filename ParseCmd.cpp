@@ -31,9 +31,9 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 	Invitecmd inv;
 	if (cmd.empty())
 		throw runtime_error(string(ERR) + "Invalid command\n" + RESET);
-	else if (cmd[0] == '/'){
+	else{
 		string args = cmd.substr(cmd.find_first_of(' ') + 1);
-		cmd = cmd.substr(1, cmd.find_first_of(' ') - 1);
+		cmd = cmd.substr(0, cmd.find_first_of(' '));
 		string av[2];
 		splitArgs(av, args);
 		cout << "cmd: " << cmd << endl;
@@ -171,10 +171,10 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 		else
 			cout << "why?\n";
 	}
-	else if (!cmd.empty()){
-		for(size_t i = 0; i < serv.clients.size(); i++){
-			if (serv.clients[i].getFd() == fd)
-				serv.ch.broadcastMessage(serv.ch.getJoinedChannel(serv.clients[i].getUsername()), cmd, fd, serv.clients[i].getUsername());
-		}
-	}
+	// else if (!cmd.empty()){
+	// 	for(size_t i = 0; i < serv.clients.size(); i++){
+	// 		if (serv.clients[i].getFd() == fd)
+	// 			serv.ch.broadcastMessage(serv.ch.getJoinedChannel(serv.clients[i].getUsername()), cmd, fd, serv.clients[i].getUsername());
+	// 	}
+	// }
 }

@@ -35,11 +35,9 @@ class Server{
         Channel ch;
         std::vector<Client> clients;
         int port;
-        int count;
         std::string pass;
         Server(){
             fd_Server = -1;
-            count = 0;
         }
         void be_ready_for_connection();
         void AcceptNewConnetinClient();

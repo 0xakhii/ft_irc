@@ -55,6 +55,8 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 			// check the channel where the user run /topic
 			if (av[0][0] == '#'){
 				if (av[1].empty()){ // print the channel topic
+					if (av[0][av[0].length() - 1] == '\n')
+						av[0].pop_back();
 					string topic = string(YELLOW) + "Channel: " + av[0] + "TOPIC: " + RESET + serv.ch.getTopic(&av[0][1]);
 					send(fd, topic.c_str(), topic.size(), 0);
 				}
@@ -160,6 +162,16 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 		else if (cmd == "MSG"){ // Send private messages between users.
 			cout << "Nickname: " << av[0] << endl;
 			cout << "message: " << av[1] << endl;
+			if (av[0][0] == '#'){
+				if (serv.ch.hasChannel(&av[0][1])){
+					map<string, int> userList = serv.ch.getUserList(&av[0][1]);
+					for (map<string, int>::iterator it = userList.begin(); it != userList.end(); ++it){
+						string toSend = string(YELLOW) + "BRODCAST MESSAGE FROM " + av[0] + "\nby <" + getUserbyfd(serv, fd) + "> " + RESET + av[1];
+						if (fd != it->second)
+							send(it->second, toSend.c_str(), toSend.size(), 0);
+					}
+				}
+			}
 			for(size_t i = 0; i < serv.clients.size(); i++){
 				if (serv.clients[i].getUsername() == av[0]){
 					string toSend = string(YELLOW) + "PRIVATE MESSAGE FROM <" + getUserbyfd(serv, fd) + "> " + RESET + av[1]; 
@@ -177,10 +189,4 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 		else
 			cout << "why?\n";
 	}
-	// else if (!cmd.empty()){
-	// 	for(size_t i = 0; i < serv.clients.size(); i++){
-	// 		if (serv.clients[i].getFd() == fd)
-	// 			serv.ch.broadcastMessage(serv.ch.getJoinedChannel(serv.clients[i].getUsername()), cmd, fd, serv.clients[i].getUsername());
-	// 	}
-	// }
 }

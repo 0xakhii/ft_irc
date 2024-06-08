@@ -29,11 +29,11 @@ class Channel {
 		};
 		map<string, ChannelData> Channels;
 	public:
-		
 		bool hasChannel(const string& channelName) const {
 			return Channels.count(channelName) > 0;
 		}
 		bool addChannel(const string& channelName, string username, int fd) {
+			cout << channelName << " ---\n";
 			std::pair<map<string, ChannelData>::iterator, bool> result = Channels.insert({channelName, ChannelData{}});
 			if (!result.second) {
 				return false;

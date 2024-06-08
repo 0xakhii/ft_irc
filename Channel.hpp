@@ -45,12 +45,10 @@ class Channel {
 			if(channelName[channelName.length()-1] == '\n')
 				channelName.pop_back();
 			result.first->second.name = channelName;
-			result.first->second.topic = "topic\n";
+			result.first->second.topic = "No topic set\n";
 			result.first->second.operators.insert(username);
 			result.first->second.userList[username] = fd;
 			result.first->second.userLimit = -1;
-			cout << "Channel Created: " << result.first->second.name << endl;
-			cout << "OP USER: " << *result.first->second.operators.find(username) << endl;
 			return true;
 		}
 		const ChannelData& getChannel(const string& channelName) const {

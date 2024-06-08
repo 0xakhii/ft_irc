@@ -41,7 +41,6 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 		cmd = cmd.substr(0, cmd.find_first_of(' '));
 		string av[2];
 		splitArgs(av, args);
-		cout << "cmd: " << cmd << endl;
 		if (cmd == "JOIN"){ // Join a channel. If the channel specified does not exist, a new one will be created with the given name.
 			for(size_t i = 0; i < serv.clients.size(); i++){
 				if (serv.clients[i].getFd() == fd)

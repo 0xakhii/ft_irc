@@ -8,7 +8,6 @@ void	createChannel(string av[2], Channel &ch, string username, int fd){
 	}
 	else{
 		av[0] = &av[0][1];
-		cout << av[0] << "----\n";
 		if (ch.hasChannel(av[0])){
 			if (ch.getInviteOnly(av[0])){
 				if (!ch.isInvited(av[0], username)){

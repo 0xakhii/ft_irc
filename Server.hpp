@@ -4,6 +4,7 @@
 #define WHI "\e[0;37m" //-> for white color
 #define GRE "\e[1;32m" //-> for green color
 #define YEL "\e[1;33m" //-> for yellow color
+#define GREEN "\033[1;32m" //->green
 #define ORANGE "\033[38;2;255;165;0m" //->orange
 #include <iostream>
 #include <vector> //-> for vector

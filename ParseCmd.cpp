@@ -17,6 +17,10 @@ void	splitArgs(string av[2], string args){
 		av[0] = args;
 		av[1].clear();
 	}
+	if (av[1][av[1].length() - 1] == '\n')
+		av[1].pop_back();
+	if (av[0][av[0].length() - 1] == '\n')
+		av[0].pop_back();
 }
 string getUserbyfd(Server& serv, int fd) {
 	for (size_t i = 0; i < serv.clients.size(); i++) {
@@ -31,7 +35,7 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 	Invitecmd inv;
 	std::string cmd_tmp = cmd.substr(cmd.find_first_of(' ') + 1);
 	if (cmd.empty())
-		throw runtime_error(string(ERR) + "Invalid command\n" + RESET);
+		return;
 	else{
 		string args = cmd.substr(cmd.find_first_of(' ') + 1);
 		cmd = cmd.substr(0, cmd.find_first_of(' '));
@@ -41,7 +45,7 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 		if (cmd == "JOIN"){ // Join a channel. If the channel specified does not exist, a new one will be created with the given name.
 			for(size_t i = 0; i < serv.clients.size(); i++){
 				if (serv.clients[i].getFd() == fd)
-					createChannel(av[0], serv.ch, serv.clients[i].getUsername(), serv.clients[i].getFd());
+					createChannel(av, serv.ch, serv.clients[i].getUsername(), serv.clients[i].getFd());
 			}
 		}
 		else if (cmd == "INVITE"){ // Invite a user to a channel.
@@ -58,20 +62,24 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 				if (av[1].empty()){ // print the channel topic
 					if (av[0][av[0].length() - 1] == '\n')
 						av[0].pop_back();
-					string topic = string(YELLOW) + "Channel: " + av[0] + "TOPIC: " + RESET + serv.ch.getTopic(&av[0][1]);
+					string topic = string(YELLOW) + av[0] + ": " + RESET + serv.ch.getTopic(&av[0][1]);
 					send(fd, topic.c_str(), topic.size(), 0);
 				}
 				else{
 					for(size_t i = 0; i < serv.clients.size(); i++){
 						if (serv.clients[i].getFd() == fd){
-							if (!serv.ch.setTopic(&av[0][1], av[1], serv.clients[i].getUsername()))
-								cout << ERR <<  "Can't set a new topic\n" << RESET;
+							if (!serv.ch.setTopic(&av[0][1], av[1], serv.clients[i].getUsername())){
+								string toSend = string(RED) + "You are not allowed to change the topic\n" + RESET;
+								send(fd, toSend.c_str(), toSend.size(), 0);
+							}
 						}
 					}
 				}
 			}
-			else
-				cout << ERR <<  "Invalid Channel Name\n" << RESET;
+			else{
+				string toSend = string(RED) + "Invalid channel name\n" + RESET;
+				send(fd, toSend.c_str(), toSend.size(), 0);
+			}
 		}
 		else if (cmd == "MODE"){ // Set or remove options (or modes) to a given target.
 			char modeSign = av[1][0];
@@ -91,7 +99,6 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 						case 'o': // Give channel operator privilege
 							for(size_t i = 0; i < serv.clients.size(); ++i){
 								// check for spaces before and newline in the end;
-								cout << "username: " << av[1] << endl;
 								if (serv.clients[i].getUsername() == av[1]){
 									if (serv.ch.addOperator(av[0], serv.clients[i].getUsername())){
 										string toSend = string(YELLOW) + "You are now an operator\n" + RESET;
@@ -100,7 +107,6 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 								}
 							}
 							break;
-						 // Set Invite-only channel
 						case 'i': // Set Invite-only channel
 							serv.ch.setInviteOnly(av[0]);
 							break;
@@ -110,7 +116,8 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 								serv.ch.setUserLimit(av[0], limit);
 							}
 							else {
-								cout << ERR << "User limit not specified\n" << RESET;
+								string toSend = string(RED) + "User limit not specified\n" + RESET;
+								send(fd, toSend.c_str(), toSend.size(), 0);
 							}
 							break;
 						case 'k': // Set the channel key (password)
@@ -118,18 +125,18 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 								serv.ch.setChannelKey(av[0], av[1]);
 							}
 							else{
-								cout << ERR << "Channel key not specified\n" << RESET;
+								string toSend = string(RED) + "Channel key not specified\n" + RESET;
+								send(fd, toSend.c_str(), toSend.size(), 0);
 							}
 							break;
 						case 't': // Set the restrictions of the TOPIC command to channel operators
 							serv.ch.setTopicRestrictions(av[0]);
 							break;
 						default:
-							throw runtime_error(string(ERR) + "Invalid Mode Flag\n" + RESET);
-							cout << ERR << "Invalid Mode Flag\n" << RESET;
+							string toSend = string(RED) + "Invalid Mode Flag\n" + RESET;
+							send(fd, toSend.c_str(), toSend.size(), 0);
 							break;
 					}
-					cout << "mode <+>: " << modeFlag << endl;
 				}
 				else if (modeSign == '-'){
 					switch (modeFlag)
@@ -153,21 +160,19 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 							serv.ch.removeTopicRestrictions(av[0]);
 							break;
 						default:
-							throw runtime_error(string(ERR) + "Invalid Mode Flag\n" + RESET);
+							string toSend = string(RED) + "Invalid Mode Flag\n" + RESET;
+							send(fd, toSend.c_str(), toSend.size(), 0);
 							break;
 					}
-					cout << "mode <->: " << modeFlag << endl;
 				}
 			}
 		}
 		else if (cmd == "MSG" || cmd == "PRIVMSG"){ // Send private messages between users.
-			cout << "Nickname: " << av[0] << endl;
-			cout << "message: " << av[1] << endl;
 			if (av[0][0] == '#'){
 				if (serv.ch.hasChannel(&av[0][1])){
 					map<string, int> userList = serv.ch.getUserList(&av[0][1]);
 					for (map<string, int>::iterator it = userList.begin(); it != userList.end(); ++it){
-						string toSend = string(YELLOW) + "BRODCAST MESSAGE FROM " + av[0] + "\nby <" + getUserbyfd(serv, fd) + "> " + RESET + av[1];
+						string toSend = string(YELLOW) + "BRODCAST MESSAGE FROM " + av[0] + "\nby <" + getUserbyfd(serv, fd) + "> " + RESET + av[1] + "\n";
 						if (fd != it->second)
 							send(it->second, toSend.c_str(), toSend.size(), 0);
 					}
@@ -175,7 +180,7 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 			}
 			for(size_t i = 0; i < serv.clients.size(); i++){
 				if (serv.clients[i].getUsername() == av[0]){
-					string toSend = string(YELLOW) + "PRIVATE MESSAGE FROM <" + getUserbyfd(serv, fd) + "> " + RESET + av[1]; 
+					string toSend = string(YELLOW) + "PRIVATE MESSAGE FROM <" + getUserbyfd(serv, fd) + "> " + RESET + av[1] + "\n"; 
 					send(serv.clients[i].getFd(), toSend.c_str(), toSend.size(), 0);
 				}
 			}
@@ -185,9 +190,6 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 			serv.ClearClients(fd);
 			close(fd);
 			cout << "Client <" << fd << "> Disconnected\n";
-			
 		}
-		else
-			cout << "why?\n";
 	}
 }

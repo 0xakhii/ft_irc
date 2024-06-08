@@ -26,6 +26,10 @@ class Channel {
 			map<string, int> userList;
 			int userLimit;
 			vector<string> invitelist;
+			bool InviteOnly;
+			bool TopicRestrictions;
+			string ChannelKey;
+			bool isKeyRequired;
 		};
 		map<string, ChannelData> Channels;
 	public:
@@ -58,7 +62,7 @@ class Channel {
 		}
 
 		bool setTopic(const string& channelName, const string& newTopic, const string& username) {
-			if (!isOperator(channelName, username))
+			if (!isOperator(channelName, username) && Channels[channelName].TopicRestrictions)
 				return false;
 			else
 				Channels[channelName].topic = newTopic;
@@ -71,7 +75,7 @@ class Channel {
 		}
 		bool addUser(const string& channelName, const string& username, int fd) {
 			Channels[channelName].userList[username] = fd;
-			broadcastMessage(channelName, "has joind the channel\n", fd, username);
+			broadcastMessage(channelName, "has joind the channel", fd, username);
 			return true;
 		}
 		bool addinviteeduser(const string& chan_name, const string& username) {
@@ -117,74 +121,60 @@ class Channel {
 		}
 		void broadcastMessage(const string& channelName, const string& message, int fd, string username) {
 			if (!hasChannel(channelName)) {
-				cout << ERR << "Invalid Channel Name\n" << RESET;
+				string toSend = string(ERR) + "Channel does not exist\n" + RESET;
+				send(fd, toSend.c_str(), toSend.size(), 0);
 				return;
 			}
 			const map<string, int>& userList = Channels.at(channelName).userList;
 			for (map<string, int>::const_iterator it = userList.begin(); it != userList.end(); ++it) {
 				cout << "Broadcasting message to user: " << it->first << endl;
-				string toSend = string(YELLOW) + "#" + channelName + ":\n" + username + ": " + RESET + message;
+				string toSend = string(YELLOW) + "#" + channelName + ":\n" + username + ": " + RESET + message + "\n";
 				if (fd != it->second){
 					send(it->second, toSend.c_str(), toSend.size(), 0);
 				}
 			}
 		}
-		bool removeInviteOnly(const string& channelName) {
-			if (!hasChannel(channelName)) {
-				return false;
-			}
-			Channels[channelName].invitelist.clear();
-			return true;
+		void removeInviteOnly(const string& channelName) {
+			Channels[channelName].InviteOnly = false;
 		}
-		bool removeUserLimit(const string& channelName) {
-			if (!hasChannel(channelName)) {
-				return false;
-			}
+		bool getInviteOnly(const string& channelName) const {
+			return Channels.at(channelName).InviteOnly;
+		}
+		bool isInvited(const string& channelName, const string& username) const {
+			return find(Channels.at(channelName).invitelist.begin(), Channels.at(channelName).invitelist.end(), username) != Channels.at(channelName).invitelist.end();
+		}
+		void removeUserLimit(const string& channelName) {
 			Channels[channelName].userLimit = -1;
-			return true;
 		}
-		bool removeChannelKey(const string& channelName) {
-			if (!hasChannel(channelName)) {
-				return false;
-			}
+		void removeChannelKey(const string& channelName) {
 			Channels[channelName].invitelist.clear();
-			return true;
+			Channels[channelName].isKeyRequired = false;
 		}
-		bool removeTopicRestrictions(const string& channelName) {
-			if (!hasChannel(channelName)) {
-				return false;
-			}
-			Channels[channelName].invitelist.clear();
-			return true;
+		bool isKeyRequired(const string& channelName) const {
+			return Channels.at(channelName).isKeyRequired;
 		}
-		bool setInviteOnly(const string& channelName) {
-			if (!hasChannel(channelName)) {
-				return false;
-			}
-			Channels[channelName].invitelist.clear();
-			return true;
+		string getChannelKey(const string& channelName) const {
+			return Channels.at(channelName).ChannelKey;
 		}
-		bool setUserLimit(const string& channelName, int limit) {
-			if (!hasChannel(channelName)) {
-				return false;
-			}
+		void removeTopicRestrictions(const string& channelName) {
+			Channels[channelName].TopicRestrictions = false;
+		}
+		void setInviteOnly(const string& channelName) {
+			Channels[channelName].InviteOnly = true;
+		}
+		void setUserLimit(const string& channelName, int limit) {
 			Channels[channelName].userLimit = limit;
-			return true;
 		}
-		bool setChannelKey(const string& channelName, const string& key) {
-			if (!hasChannel(channelName)) {
-				return false;
-			}
-			Channels[channelName].invitelist.clear();
-			return true;
+		int getUserLimit(const string& channelName) const {
+			return Channels.at(channelName).userLimit;
 		}
-		bool setTopicRestrictions(const string& channelName) {
-			if (!hasChannel(channelName)) {
-				return false;
-			}
-			Channels[channelName].invitelist.clear();
-			return true;
+		void setChannelKey(const string& channelName, const string& key) {
+			Channels[channelName].ChannelKey = key;
+			Channels[channelName].isKeyRequired = true;
+		}
+		void setTopicRestrictions(const string& channelName) {
+			Channels[channelName].TopicRestrictions = true;
 		}
 };
 
-void	createChannel(string arg, Channel &ch, string username, int fd);
+void	createChannel(string av[2], Channel &ch, string username, int fd);

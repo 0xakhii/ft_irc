@@ -75,12 +75,18 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 			char modeFlag = av[1][1];
 			if (av[0][0] == '#'){
 				av[0] = &av[0][1];
+				size_t i = 0;
 				av[1] = &av[1][2];
+				while(av[1][i] == ' ')
+					i++;
+				av[1] = &av[1][i];
+				if (av[1][av[1].length() - 1] == '\n')
+					av[1].pop_back();
 				if (modeSign == '+'){
 					switch (modeFlag)
 					{
 						case 'o': // Give channel operator privilege
-							for(size_t i = 0; i < serv.clients.size(); i++){
+							for(size_t i = 0; i < serv.clients.size(); ++i){
 								// check for spaces before and newline in the end;
 								cout << "username: " << av[1] << endl;
 								if (serv.clients[i].getUsername() == av[1]){

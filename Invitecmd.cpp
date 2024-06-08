@@ -32,32 +32,39 @@ void Invitecmd::invite(std::string av[2], Channel &ch,int fd){
         send_response(fd, "----Invalid channel name!----\n");
         return;
     }
-    std::map<std::string,int> user_list = ch.getUserList(channel);
-    invited_fd = findUserFdByUsername(user_list, user);
-    std::cout<<"Kicked fd:--->>>> "<<invited_fd<<std::endl;
-    if(invited_fd == -1){
-        std::cout<<"User not found"<<std::endl;
-        send_response(fd, "----User not found!----\n");
-        return;
-    }
-    if(ch.isOperator(channel,client_name)==false){
-        std::cout<<"You are not an operator"<<std::endl;
-        send_response(fd, "----You are not an operator!----\n");
-        return;
-    }
     std::vector<std::string>::iterator it;
     it = std::find(ch.getChannelNames().begin(),ch.getChannelNames().end(),channel);
     if(it==ch.getChannelNames().end()){
         std::cout<<"Channel not found"<<std::endl;
-        send_response(fd, "----Channel does not exist!----\n");
+        send_response(fd, nosuchchannel(channel));
         //ghanssendi l user li sift request message bini makaynach had channel
         return;
     }
+    std::map<std::string,int> user_list = ch.getUserList(channel);
+    std::map<std::string,int>::iterator itt2;
+    itt2 = ch.allclient.begin();
+    for(itt2;itt2!=ch.allclient.end();itt2++){
+        if(itt2->first == user){
+            invited_fd = itt2->second;
+            break;
+        }
+    }
+    if(invited_fd == -1){
+        send_response(fd, nosuchuser(user));
+        //ghanssendi l user li sift request message bini luser makaynach
+        return;
+    }
+    if(ch.isOperator(channel,client_name)==false){
+        std::cout<<"You are not an operator"<<std::endl;
+        send_response(fd, notadmin(client_name,channel));
+        return;
+    }
+    
     std::map<std::string,int>::iterator it1;
     it1 = ch.getUserList(channel).find(user);
     if(it1!=ch.getUserList(channel).end()){
         std::cout<<"User is already in the channel"<<std::endl;
-        send_response(fd, "----User is already in the channel!----\n");     
+        send_response(fd, useronchannel(user,channel));     
         //ghanssendi l user li sift request message bini luser kayn f channel
         return;
     }
@@ -65,8 +72,32 @@ void Invitecmd::invite(std::string av[2], Channel &ch,int fd){
     {
         std::cout<<"Invited "<<user<<" to "<<channel;
         ch.addinviteeduser(channel,user);
-        send_response(fd, "----User invited!----\n");
-        send_response(invited_fd, "----You have been invited to the channel!----\n");
+       // send_response(fd, "----User invited!----\n");
+        send_response(invited_fd, Rpl_inviting(client_name,channel,user));
         //ghanssendi invite l user
     }
+}
+
+std::string Invitecmd::notenoughparams(){
+    return(": 461 INVITE Not enough parameters\r\n");
+}
+
+std::string Invitecmd::nosuchchannel(std::string channel_name){
+    return(": 403 " + channel_name + " :No such channel\r\n");
+}
+
+std::string Invitecmd::nosuchuser(std::string invited_nick){
+    return(": 401 " + invited_nick + " :No such nick/channel\r\n");
+}
+
+std::string Invitecmd::notadmin(std::string source_nick,std::string channel_name){
+    return(": 482 " + source_nick + " :You're not channel operator\r\n");
+}
+
+std::string Invitecmd::Rpl_inviting(std::string source_nick,std::string channel_name,std::string invited_nick){
+    return(":" + source_nick + " INVITE " + invited_nick + " " + channel_name + "\r\n");
+}
+
+std::string Invitecmd::useronchannel(std::string invited_nick,std::string channel_name){
+    return(": 443 " + invited_nick + " " + channel_name + " :is already on channel\r\n");
 }

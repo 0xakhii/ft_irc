@@ -29,6 +29,7 @@ string getUserbyfd(Server& serv, int fd) {
 void	ParseCmd(string cmd, Server& serv, int fd){
 	KickCmd k;
 	Invitecmd inv;
+	std::string cmd_tmp = cmd.substr(cmd.find_first_of(' ') + 1);
 	if (cmd.empty())
 		throw runtime_error(string(ERR) + "Invalid command\n" + RESET);
 	else{
@@ -49,7 +50,7 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 		}
 		else if (cmd == "KICK"){ // Kick a user from the channel.
 			k.client_name = getUserbyfd(serv, fd);
-			k.kick(av, serv.ch, fd);
+			k.kick(cmd_tmp, serv.ch, fd);
 		}
 		else if (cmd == "TOPIC"){ // Change or view the topic of the given channel.
 			// check the channel where the user run /topic
@@ -159,7 +160,7 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 				}
 			}
 		}
-		else if (cmd == "MSG"){ // Send private messages between users.
+		else if (cmd == "MSG" || cmd == "PRIVMSG"){ // Send private messages between users.
 			cout << "Nickname: " << av[0] << endl;
 			cout << "message: " << av[1] << endl;
 			if (av[0][0] == '#'){

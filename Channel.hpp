@@ -29,15 +29,17 @@ class Channel {
 		};
 		map<string, ChannelData> Channels;
 	public:
+		std::map<std::string,int> allclient;
 		bool hasChannel(const string& channelName) const {
 			return Channels.count(channelName) > 0;
 		}
-		bool addChannel(const string& channelName, string username, int fd) {
-			cout << channelName << " ---\n";
+		bool addChannel(string& channelName, string username, int fd) {
 			std::pair<map<string, ChannelData>::iterator, bool> result = Channels.insert({channelName, ChannelData{}});
 			if (!result.second) {
 				return false;
 			}
+			if(channelName[channelName.length()-1] == '\n')
+				channelName.pop_back();
 			result.first->second.name = channelName;
 			result.first->second.topic = "topic\n";
 			result.first->second.operators.insert(username);

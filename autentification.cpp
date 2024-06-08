@@ -18,11 +18,11 @@ void Server::parseClientInput(int fd, const std::string& data) {
         std::istringstream linestream(line);  // Create an input string stream from the line
         std::string command;
         linestream >> command;  // Read the command from the line
-    if(command=="quit")
-    {
-        std::cout  <<RED<< "Client <" << fd << "> Disconnected" << std::endl;
-		close(fd);
-    }
+        if(command=="quit")
+        {
+            std::cout  <<RED<< "Client <" << fd << "> Disconnected" << std::endl;
+            close(fd);
+        }
         for (size_t i = 0; i < clients.size(); ++i) { 
             std::cout<<"our i-->"<<i<<std::endl;
              Client& client = clients[i];
@@ -92,6 +92,7 @@ void Server::parseClientInput(int fd, const std::string& data) {
                 client.setRealname(realname);
                 client.setUsernameReceived(true);
                 send_welcome_message(fd,client);
+                ch.allclient[client.getNickname()]=client.getFd();
                 }
                 }
                 //break;

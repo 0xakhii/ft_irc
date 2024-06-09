@@ -175,14 +175,23 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 						if (fd != it->second)
 							send(it->second, toSend.c_str(), toSend.size(), 0);
 					}
+					return;
+				}
+				else{
+					string toSend = string(RED) + "Channel not found\n" + RESET;
+					send(fd, toSend.c_str(), toSend.size(), 0);
+					return;
 				}
 			}
 			for(size_t i = 0; i < serv.clients.size(); i++){
 				if (serv.clients[i].getUsername() == av[0]){
 					string toSend = string(YELLOW) + "PRIVATE MESSAGE FROM <" + getUserbyfd(serv, fd) + "> " + RESET + av[1] + "\n"; 
 					send(serv.clients[i].getFd(), toSend.c_str(), toSend.size(), 0);
+					return;
 				}
 			}
+			string toSend = string(RED) + "User not found\n" + RESET;
+			send(fd, toSend.c_str(), toSend.size(), 0);
 		}
 		else if (cmd == "QUIT"){ // Terminate a client’s connection to the server.
 			cout << "quit message: " << av[0] << endl;

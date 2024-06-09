@@ -49,6 +49,8 @@ class Channel {
 			result.first->second.operators.insert(username);
 			result.first->second.userList[username] = fd;
 			result.first->second.userLimit = -1;
+			string toSend = ":WEBSERV JOIN #" + channelName + " :" + username + "\n";
+			send(fd, toSend.c_str(), toSend.size(), 0);
 			return true;
 		}
 		const ChannelData& getChannel(const string& channelName) const {

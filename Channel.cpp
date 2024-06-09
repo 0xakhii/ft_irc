@@ -14,8 +14,11 @@ void	createChannel(string av[2], Channel &ch, string username, int fd){
 					string toSend = string(ERR) + "You are not invited to this channel\n" + RESET;
 					send(fd, toSend.c_str(), toSend.size(), 0);
 				}
-				else
+				else{
 					ch.addUser(av[0], username, fd);
+					string toSend = ":WEBSERV JOIN #" + string(av[0]) + " :" + username + "\n";
+					send(fd, toSend.c_str(), toSend.size(), 0);
+				}
 			}
 			else if (ch.getUserLimit(av[0]) != -1 && ch.getUserList(av[0]).size() >= ch.getUserLimit(av[0])){
 				string toSend = string(ERR) + "Channel is full\n" + RESET;
@@ -26,11 +29,17 @@ void	createChannel(string av[2], Channel &ch, string username, int fd){
 					string toSend = string(ERR) + "Invalid channel key\n" + RESET;
 					send(fd, toSend.c_str(), toSend.size(), 0);
 				}
-				else
+				else{
 					ch.addUser(av[0], username, fd);
+					string toSend = ":WEBSERV JOIN #" + string(av[0]) + " :" + username + "\n";
+					send(fd, toSend.c_str(), toSend.size(), 0);
+				}
 			}
-			else
+			else{
 				ch.addUser(av[0], username, fd);
+				string toSend = ":WEBSERV JOIN #" + string(av[0]) + " :" + username + "\n";
+				send(fd, toSend.c_str(), toSend.size(), 0);
+			}
 		}
 		else{
 			if (!ch.addChannel(av[0], username, fd)){

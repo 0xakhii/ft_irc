@@ -21,9 +21,12 @@ void splitkickargs(std::string& str,std::vector<std::string>& args) {
 }
 
 int findUserFdByUsername(const std::map<std::string, int>& userMap,  std::string& username) {
+    std::cout<<"==>>"<<username<<std::endl;
     std::map<std::string, int>::const_iterator it = userMap.begin();
-    username = username.substr(0, username.size()-1);
+    username = username.substr(0, username.size());
+    std::cout<<"##"<<userMap.size()<<std::endl;
     while (it != userMap.end()) {
+        std::cout<<"i am here"<<std::endl;
         std::cout<<"User: "<<it->first.size()<<" fd: "<<it->second<<std::endl;
         std::cout<<"Username  "<<(int)username[5]<<std::endl;
         if (it->first == username) {
@@ -42,7 +45,7 @@ void KickCmd::kick(std::string full_args, Channel &ch,int fd){
     std::string channel;
     std::string user;
     std::string comment;
-
+    std::cout<<"full_args: "<<full_args<<"-->>"<<full_args.size()<<std::endl;
     splitkickargs(full_args, args);
     //tantchecki wach ga3 les arguments d kick kaynin
     if(args.size() < 2){
@@ -86,7 +89,10 @@ void KickCmd::kick(std::string full_args, Channel &ch,int fd){
         send_response(fd, nosuchchannel(channel));
         return;
     }
+    std::cout<<"@@ "<<channel<<std::endl;
+    std::cout<<"++>"<<ch.getUserList(channel).size()<<std::endl;
     std::map<std::string,int> user_list = ch.getUserList(channel);
+    //std::cout<<"User list size: "<<ch.getUserList().size()<<std::endl;
     kicked_fd = findUserFdByUsername(user_list, user);
     std::cout<<"Kicked fd:--->>>> "<<kicked_fd<<std::endl;
     //tantchecki wach kayn had user f had channel
@@ -148,7 +154,9 @@ std::string KickCmd::nosuchchannel(std::string channel_name){
 }
 
 std::string KickCmd::nosuchuser(std::string kicked_nick){
-    return ":401 "+kicked_nick+" :No such nick/channel\r\n";
+    std::string res =":401 "+kicked_nick+" :No such nick/channel\r\n";
+    std::cout<<res<<std::endl;
+    return res;
 }
 
 std::string KickCmd::notadmin(std::string source_nick,std::string channel_name){

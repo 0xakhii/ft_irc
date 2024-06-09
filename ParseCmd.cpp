@@ -190,5 +190,9 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 			close(fd);
 			cout << "Client <" << fd << "> Disconnected\n";
 		}
+		else if (cmd == "PING"){
+			string toSend = string(YELLOW) + "PONG\n" + RESET;
+			send(fd, toSend.c_str(), toSend.size(), 0);
+		}
 	}
 }

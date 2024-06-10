@@ -15,9 +15,7 @@ void	createChannel(string av[2], Channel &ch, string username, string nickname, 
 					send(fd, toSend.c_str(), toSend.size(), 0);
 				}
 				else{
-					ch.addUser(av[0], username, fd);
-					string toSend = ":WEBSERV JOIN #" + string(av[0]) + " :" + username + "\n";
-					send(fd, toSend.c_str(), toSend.size(), 0);
+					ch.addUser(av[0], username, nickname, fd);
 				}
 			}
 			else if (ch.getUserLimit(av[0]) != -1 && ch.getUserList(av[0]).size() >= ch.getUserLimit(av[0])){
@@ -30,15 +28,11 @@ void	createChannel(string av[2], Channel &ch, string username, string nickname, 
 					send(fd, toSend.c_str(), toSend.size(), 0);
 				}
 				else{
-					ch.addUser(av[0], username, fd);
-					string toSend = ":WEBSERV JOIN #" + string(av[0]) + " :" + username + "\n";
-					send(fd, toSend.c_str(), toSend.size(), 0);
+					ch.addUser(av[0], username, nickname, fd);
 				}
 			}
 			else{
-				ch.addUser(av[0], username, fd);
-				string toSend = ":WEBSERV JOIN #" + string(av[0]) + " :" + username + "\n";
-				send(fd, toSend.c_str(), toSend.size(), 0);
+				ch.addUser(av[0], username, nickname, fd);
 			}
 		}
 		else{

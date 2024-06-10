@@ -49,8 +49,6 @@ class Channel {
 			result.first->second.operators.insert(username);
 			result.first->second.userList[username] = fd;
 			result.first->second.userLimit = -1;
-			string toSend = ":WEBSERV JOIN #" + channelName + " :" + username + "\n";
-			send(fd, toSend.c_str(), toSend.size(), 0);
 			return true;
 		}
 		const ChannelData& getChannel(const string& channelName) const {
@@ -73,9 +71,9 @@ class Channel {
 				return "";
 			return Channels.at(channelName).topic;
 		}
-		bool addUser(const string& channelName, const string& username, int fd) {
+		bool addUser(const string& channelName, const string& username, const string& nickname, int fd) {
 			Channels[channelName].userList[username] = fd;
-			broadcastMessage(channelName, "has joind the channel", fd, username);
+			broadcastMessage(channelName, ":" + nickname + "!" + username + "@localhost JOIN :#" + channelName + "\r\n", fd, username);
 			return true;
 		}
 		bool addinviteeduser(const string& chan_name, const string& username) {
@@ -127,10 +125,8 @@ class Channel {
 			}
 			const map<string, int>& userList = Channels.at(channelName).userList;
 			for (map<string, int>::const_iterator it = userList.begin(); it != userList.end(); ++it) {
-				cout << "Broadcasting message to user: " << it->first << endl;
-				string toSend = string(YELLOW) + "#" + channelName + ":\n" + username + ": " + RESET + message + "\n";
 				if (fd != it->second){
-					send(it->second, toSend.c_str(), toSend.size(), 0);
+					send(it->second, message.c_str(), message.size(), 0);
 				}
 			}
 		}

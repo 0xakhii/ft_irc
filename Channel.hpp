@@ -177,4 +177,4 @@ class Channel {
 		}
 };
 
-void	createChannel(string av[2], Channel &ch, string username, int fd);
+void	createChannel(string av[2], Channel &ch, string username, string nickname, int fd);

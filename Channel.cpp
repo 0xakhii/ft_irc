@@ -1,7 +1,7 @@
 #include "Channel.hpp"
 #include "Server.hpp"
 
-void	createChannel(string av[2], Channel &ch, string username, int fd){
+void	createChannel(string av[2], Channel &ch, string username, string nickname, int fd){
 	if (av[0][0] != '#'){
 		string toSend = string(ERR) + "Invalid channel name\n" + RESET;
 		send(fd, toSend.c_str(), toSend.size(), 0);
@@ -47,7 +47,10 @@ void	createChannel(string av[2], Channel &ch, string username, int fd){
 				send(fd, toSend.c_str(), toSend.size(), 0);
 			}
 			else{
-				string toSend = string(GREEN) + "Channel created\n" + RESET;
+				string toSend = ":" + nickname + "!WEBSERV @localhost JOIN :" + string(av[0]) + "\r\n" +\
+								":WEBSERV 331 " + nickname + " " + string(av[0]) + " :No topic is set\n" \
+								":WEBSERV 353 " + nickname + " = #" + string(av[0]) + " :" + nickname + "\n" \
+								":WEBSERV 366 " + nickname + " #" + string(av[0]) + " :End of /NAMES list\n";
 				send(fd, toSend.c_str(), toSend.size(), 0);
 			}
 		}

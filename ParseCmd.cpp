@@ -44,7 +44,7 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 		if (cmd == "JOIN"){ // Join a channel. If the channel specified does not exist, a new one will be created with the given name.
 			for(size_t i = 0; i < serv.clients.size(); i++){
 				if (serv.clients[i].getFd() == fd)
-					createChannel(av, serv.ch, serv.clients[i].getUsername(), serv.clients[i].getFd());
+					createChannel(av, serv.ch, serv.clients[i].getUsername(), serv.clients[i].getNickname(), serv.clients[i].getFd());
 			}
 		}
 		else if (cmd == "INVITE"){ // Invite a user to a channel.
@@ -200,7 +200,7 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 			cout << "Client <" << fd << "> Disconnected\n";
 		}
 		else if (cmd == "PING"){
-			string toSend = string(YELLOW) + "PONG\n" + RESET;
+			string toSend = "PONG irc.server.com :\r\n";
 			send(fd, toSend.c_str(), toSend.size(), 0);
 		}
 	}

@@ -167,13 +167,13 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 			}
 		}
 		else if (cmd == "MSG" || cmd == "PRIVMSG"){ // Send private messages between users.
+			if (av[1][0] == ':')
+				av[1] = &av[1][1];
 			if (av[0][0] == '#'){
 				if (serv.ch.hasChannel(&av[0][1])){
-					map<string, int> userList = serv.ch.getUserList(&av[0][1]);
-					for (map<string, int>::iterator it = userList.begin(); it != userList.end(); ++it){
-						string toSend = string(YELLOW) + "BRODCAST MESSAGE FROM " + av[0] + "\nby <" + getUserbyfd(serv, fd) + "> " + RESET + av[1] + "\n";
-						if (fd != it->second)
-							send(it->second, toSend.c_str(), toSend.size(), 0);
+					for(size_t i = 0; i < serv.clients.size(); i++){
+						if (fd == serv.clients[i].getFd())
+							serv.ch.broadcastMessage(&av[0][1], av[1], fd, serv.clients[i].getNickname());
 					}
 					return;
 				}
@@ -185,7 +185,8 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 			}
 			for(size_t i = 0; i < serv.clients.size(); i++){
 				if (serv.clients[i].getUsername() == av[0]){
-					string toSend = string(YELLOW) + "PRIVATE MESSAGE FROM <" + getUserbyfd(serv, fd) + "> " + RESET + av[1] + "\n"; 
+					string toSend = ":" + serv.clients[i].getNickname() + "!~" + serv.clients[i].getUsername() + \
+									"@localhost PRIVMSG " + av[0] + " :" + av[1] + "\r\n"; 
 					send(serv.clients[i].getFd(), toSend.c_str(), toSend.size(), 0);
 					return;
 				}

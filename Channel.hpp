@@ -73,7 +73,24 @@ class Channel {
 		}
 		bool addUser(const string& channelName, const string& username, const string& nickname, int fd) {
 			Channels[channelName].userList[username] = fd;
-			broadcastMessage(channelName, ":" + nickname + "!" + username + "@localhost JOIN :#" + channelName + "\r\n", fd, username);
+			string toSend = ":localhost 353 " + nickname + " = " + channelName + " :@" + Channels.at(channelName).operators.begin()->c_str() + " ";
+			const map<string, int>& userList = Channels.at(channelName).userList;
+			for (map<string, int>::const_iterator it = userList.begin(); it != userList.end(); ++it) {
+				if (nickname == it->first)
+					continue;
+				else
+					toSend += it->first + " ";
+			}
+			toSend += "\r\n";
+			string first = ":" + nickname + "!WEBSERV@localhost JOIN :" + channelName + "\r\n";
+			string second = ":locahost 332 " + nickname + " " + channelName + " :No topic is set\r\n";
+			string third = ": 333 " + nickname + " " + channelName + " " + nickname + "\r\n" ;
+			string last = ":localhost 366 " + nickname + " #" + channelName + " :End of /NAMES list.\r\n";
+			send(fd, first.c_str(), first.size(), 0);
+			send(fd, second.c_str(), second.size(), 0);
+			send(fd, third.c_str(), third.size(), 0);
+			send(fd, toSend.c_str(), toSend.size(), 0);
+			send(fd, last.c_str(), last.size(), 0);
 			return true;
 		}
 		bool addinviteeduser(const string& chan_name, const string& username) {
@@ -117,16 +134,17 @@ class Channel {
 			}
 			return lastJoinedChannel;
 		}
-		void broadcastMessage(const string& channelName, const string& message, int fd, string username) {
+		void broadcastMessage(const string& channelName, const string& message, int fd, string nickname) {
 			if (!hasChannel(channelName)) {
 				string toSend = string(ERR) + "Channel does not exist\n" + RESET;
 				send(fd, toSend.c_str(), toSend.size(), 0);
 				return;
 			}
+			string toSend = ":" + nickname + " PRIVMSG " + channelName + " :" + message + "\r\n";
 			const map<string, int>& userList = Channels.at(channelName).userList;
 			for (map<string, int>::const_iterator it = userList.begin(); it != userList.end(); ++it) {
 				if (fd != it->second){
-					send(it->second, message.c_str(), message.size(), 0);
+					send(it->second, toSend.c_str(), toSend.size(), 0);
 				}
 			}
 		}

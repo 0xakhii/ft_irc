@@ -199,6 +199,15 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 			close(fd);
 			cout << "Client <" << fd << "> Disconnected\n";
 		}
+		else if (cmd == "WHOIS"){
+			for (size_t i = 0; i < serv.clients.size(); i++){
+				if (serv.clients[i].getNickname() == av[0]){
+					string toSend = av[0] + " 318 :End of /WHOIS list\r\n";
+					send(fd, toSend.c_str(), toSend.size(), 0);
+				}
+
+			}
+		}
 		else if (cmd == "PING"){
 			string toSend = "PONG irc.server.com :\r\n";
 			send(fd, toSend.c_str(), toSend.size(), 0);

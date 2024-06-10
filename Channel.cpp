@@ -47,10 +47,11 @@ void	createChannel(string av[2], Channel &ch, string username, string nickname, 
 				send(fd, toSend.c_str(), toSend.size(), 0);
 			}
 			else{
-				string toSend = ":" + nickname + "!WEBSERV @localhost JOIN :" + string(av[0]) + "\r\n" +\
-								":WEBSERV 331 " + nickname + " " + string(av[0]) + " :No topic is set\n" \
-								":WEBSERV 353 " + nickname + " = #" + string(av[0]) + " :" + nickname + "\n" \
-								":WEBSERV 366 " + nickname + " #" + string(av[0]) + " :End of /NAMES list\n";
+				string toSend = ":" + nickname + "!WEBSERV@localhost JOIN :" + string(av[0]) + "\r\n" +\
+								":WEBSERV 332 " + nickname + " " + string(av[0]) + " :No topic is set\r\n" +\
+								": 333 " + nickname + " " + string(av[0]) + " " + nickname + "\r\n" + \
+								":WEBSERV 353 " + nickname + " = #" + string(av[0]) + " @:" + nickname + "\r\n" +\
+								":WEBSERV 366 " + nickname + " #" + string(av[0]) + " :End of /NAMES list.\r\n";
 				send(fd, toSend.c_str(), toSend.size(), 0);
 			}
 		}

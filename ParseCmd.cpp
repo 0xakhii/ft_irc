@@ -17,10 +17,6 @@ void	splitArgs(string av[2], string args){
 		av[0] = args;
 		av[1].clear();
 	}
-	if (av[1][av[1].length() - 1] == '\n')
-		av[1].pop_back();
-	if (av[0][av[0].length() - 1] == '\n')
-		av[0].pop_back();
 }
 string getUserbyfd(Server& serv, int fd) {
 	for (size_t i = 0; i < serv.clients.size(); i++) {
@@ -30,6 +26,14 @@ string getUserbyfd(Server& serv, int fd) {
 	return "";
 }
 
+int getClientbyfd(Server& serv, int fd){
+	for (size_t i = 0; i < serv.clients.size(); i++) {
+		if (serv.clients[i].getFd() == fd)
+			return i;
+	}
+	return -1;
+}
+
 void	ParseCmd(string cmd, Server& serv, int fd){
 	KickCmd k;
 	Invitecmd inv;
@@ -37,15 +41,13 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 	if (cmd.empty())
 		return;
 	else{
+		int i = getClientbyfd(serv, fd);
 		string args = cmd.substr(cmd.find_first_of(' ') + 1);
 		cmd = cmd.substr(0, cmd.find_first_of(' '));
 		string av[2];
 		splitArgs(av, args);
 		if (cmd == "JOIN"){ // Join a channel. If the channel specified does not exist, a new one will be created with the given name.
-			for(size_t i = 0; i < serv.clients.size(); i++){
-				if (serv.clients[i].getFd() == fd)
-					createChannel(av, serv.ch, serv.clients[i].getUsername(), serv.clients[i].getNickname(), serv.clients[i].getFd());
-			}
+			createChannel(av, serv.ch, serv.clients[i].getUsername(), serv.clients[i].getNickname(), serv.clients[i].getFd());
 		}
 		else if (cmd == "INVITE"){ // Invite a user to a channel.
 			inv.client_name = getUserbyfd(serv, fd);
@@ -61,22 +63,18 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 				if (av[1].empty()){ // print the channel topic
 					if (av[0][av[0].length() - 1] == '\n')
 						av[0].pop_back();
-					string topic = string(YELLOW) + av[0] + ": " + RESET + serv.ch.getTopic(&av[0][1]);
+					string topic = ":localhost 332" + serv.clients[i].getNickname() + " " + av[0] + " :" + serv.ch.getTopic(&av[0][1]) + "\r\n";
 					send(fd, topic.c_str(), topic.size(), 0);
 				}
-				else{
-					for(size_t i = 0; i < serv.clients.size(); i++){
-						if (serv.clients[i].getFd() == fd){
-							if (!serv.ch.setTopic(&av[0][1], av[1], serv.clients[i].getUsername())){
-								string toSend = string(RED) + "You are not allowed to change the topic\n" + RESET;
-								send(fd, toSend.c_str(), toSend.size(), 0);
-							}
-						}
-					}
+				else{ // set the channel topic
+					if (!serv.ch.setTopic(&av[0][1], av[1], serv.clients[i].getNickname())){
+						string toSend = ":localhost 482 " + av[0] + " :You're not channel operator\r\n";
+						send(fd, toSend.c_str(), toSend.size(), 0);
+					}	
 				}
 			}
 			else{
-				string toSend = string(RED) + "Invalid channel name\n" + RESET;
+				string toSend = ": 403" + av[0] + " :No such channel\r\n";
 				send(fd, toSend.c_str(), toSend.size(), 0);
 			}
 		}
@@ -90,16 +88,14 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 				while(av[1][i] == ' ')
 					i++;
 				av[1] = &av[1][i];
-				if (av[1][av[1].length() - 1] == '\n')
-					av[1].pop_back();
 				if (modeSign == '+'){
 					switch (modeFlag)
 					{
 						case 'o': // Give channel operator privilege
 							for(size_t i = 0; i < serv.clients.size(); ++i){
 								// check for spaces before and newline in the end;
-								if (serv.clients[i].getUsername() == av[1]){
-									if (serv.ch.addOperator(av[0], serv.clients[i].getUsername())){
+								if (serv.clients[i].getNickname() == av[1]){
+									if (serv.ch.addOperator(av[0], serv.clients[i].getNickname())){
 										string toSend = string(YELLOW) + "You are now an operator\n" + RESET;
 										send(serv.clients[i].getFd(), toSend.c_str(), toSend.size(), 0);
 									}
@@ -124,7 +120,7 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 								serv.ch.setChannelKey(av[0], av[1]);
 							}
 							else{
-								string toSend = string(RED) + "Channel key not specified\n" + RESET;
+								string toSend = ": 475 " + serv.clients[i].getNickname() + " " + av[0] +" :Invalid channel key\r\n";
 								send(fd, toSend.c_str(), toSend.size(), 0);
 							}
 							break;
@@ -132,7 +128,7 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 							serv.ch.setTopicRestrictions(av[0]);
 							break;
 						default:
-							string toSend = string(RED) + "Invalid Mode Flag\n" + RESET;
+							string toSend = ":localhost 696 " + av[0] + " :Invalid mode parameter\r\n";
 							send(fd, toSend.c_str(), toSend.size(), 0);
 							break;
 					}
@@ -142,8 +138,8 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 					{
 						case 'o': // take channel operator privilege
 							for(size_t i = 0; i < serv.clients.size(); i++){
-								if (serv.clients[i].getFd() == fd)
-									serv.ch.removeOperator(av[0], serv.clients.back().getUsername());
+								if (serv.clients[i].getNickname() == av[1])
+									serv.ch.removeOperator(av[0], serv.clients[i].getNickname());
 							}
 							break;
 						case 'i': // remove Invite-only channel
@@ -159,7 +155,7 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 							serv.ch.removeTopicRestrictions(av[0]);
 							break;
 						default:
-							string toSend = string(RED) + "Invalid Mode Flag\n" + RESET;
+							string toSend = ":localhost 696 " + av[0] + " :Invalid mode parameter\r\n";
 							send(fd, toSend.c_str(), toSend.size(), 0);
 							break;
 					}
@@ -171,27 +167,24 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 				av[1] = &av[1][1];
 			if (av[0][0] == '#'){
 				if (serv.ch.hasChannel(&av[0][1])){
-					for(size_t i = 0; i < serv.clients.size(); i++){
-						if (fd == serv.clients[i].getFd())
-							serv.ch.broadcastMessage(&av[0][1], av[1], fd, serv.clients[i].getNickname());
-					}
+					serv.ch.broadcastMessage(&av[0][1], av[1], fd, serv.clients[i].getNickname());
 					return;
 				}
 				else{
-					string toSend = string(RED) + "Channel not found\n" + RESET;
+					string toSend = ": 403" + av[0] + " :No such channel\r\n";
 					send(fd, toSend.c_str(), toSend.size(), 0);
 					return;
 				}
 			}
 			for(size_t i = 0; i < serv.clients.size(); i++){
-				if (serv.clients[i].getUsername() == av[0]){
+				if (serv.clients[i].getNickname() == av[0]){
 					string toSend = ":" + serv.clients[i].getNickname() + "!~" + serv.clients[i].getUsername() + \
 									"@localhost PRIVMSG " + av[0] + " :" + av[1] + "\r\n"; 
 					send(serv.clients[i].getFd(), toSend.c_str(), toSend.size(), 0);
 					return;
 				}
 			}
-			string toSend = string(RED) + "User not found\n" + RESET;
+			string toSend = serv.clients[i].getNickname() + " 401 :No such nick/channel\r\n";
 			send(fd, toSend.c_str(), toSend.size(), 0);
 		}
 		else if (cmd == "QUIT"){ // Terminate a client’s connection to the server.
@@ -210,7 +203,7 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 			}
 		}
 		else if (cmd == "PING"){
-			string toSend = "PONG irc.server.com :\r\n";
+			string toSend = "PONG irc.server.com :abcde123456\r\n";
 			send(fd, toSend.c_str(), toSend.size(), 0);
 		}
 	}

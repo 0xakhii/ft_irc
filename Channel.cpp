@@ -36,7 +36,7 @@ void	createChannel(string av[2], Channel &ch, string username, string nickname, 
 			}
 		}
 		else{
-			if (!ch.addChannel(av[0], username, fd)){
+			if (!ch.addChannel(av[0], nickname, fd)){
 				string toSend = string(ERR) + "Channel already exists\n" + RESET;
 				send(fd, toSend.c_str(), toSend.size(), 0);
 			}

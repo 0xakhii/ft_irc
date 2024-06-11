@@ -97,7 +97,8 @@ void Server::parseClientInput(int fd, const std::string& data) {
                 }
                 //break;
             }
-        }}
+        }
+        }
 
 void Server::send_welcome_message(int fd,Client client)
 {

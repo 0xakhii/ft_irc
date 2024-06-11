@@ -37,17 +37,15 @@ class Channel {
 		bool hasChannel(const string& channelName) const {
 			return Channels.count(channelName) > 0;
 		}
-		bool addChannel(string& channelName, string username, int fd) {
+		bool addChannel(string& channelName, string nickname, int fd) {
 			std::pair<map<string, ChannelData>::iterator, bool> result = Channels.insert({channelName, ChannelData{}});
 			if (!result.second) {
 				return false;
 			}
-			if(channelName[channelName.length()-1] == '\n')
-				channelName.pop_back();
 			result.first->second.name = channelName;
 			result.first->second.topic = "No topic set\n";
-			result.first->second.operators.insert(username);
-			result.first->second.userList[username] = fd;
+			result.first->second.operators.insert(nickname);
+			result.first->second.userList[nickname] = fd;
 			result.first->second.userLimit = -1;
 			return true;
 		}
@@ -72,7 +70,7 @@ class Channel {
 			return Channels.at(channelName).topic;
 		}
 		bool addUser(const string& channelName, const string& username, const string& nickname, int fd) {
-			Channels[channelName].userList[username] = fd;
+			Channels[channelName].userList[nickname] = fd;
 			string toSend = ":localhost 353 " + nickname + " = " + channelName + " :@" + Channels.at(channelName).operators.begin()->c_str() + " ";
 			const map<string, int>& userList = Channels.at(channelName).userList;
 			for (map<string, int>::const_iterator it = userList.begin(); it != userList.end(); ++it) {
@@ -161,7 +159,6 @@ class Channel {
 			Channels[channelName].userLimit = -1;
 		}
 		void removeChannelKey(const string& channelName) {
-			Channels[channelName].invitelist.clear();
 			Channels[channelName].isKeyRequired = false;
 		}
 		bool isKeyRequired(const string& channelName) const {

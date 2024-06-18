@@ -1,56 +1,60 @@
 #include "Channel.hpp"
 #include "Server.hpp"
 
-void	createChannel(string av[2], Channel &ch, string username, string nickname, int fd){
+void	createChannel(string av[2], Channel &ch, string username, int fd){
 	if (av[0][0] != '#'){
-		string toSend = string(ERR) + "Invalid channel name\n" + RESET;
+		string toSend = "Invalid channel name\r\n";
 		send(fd, toSend.c_str(), toSend.size(), 0);
 	}
 	else{
-		av[0] = &av[0][1];
+		//av[0] = av[0].erase(0, 1);
+		// av[0] = av[0].substr(0, av[0].size() - 1);
+		std::cout<<"channel name==>>"<<(int)av[0][4]<<std::endl;
+		std::cout << "Creating channel==>>: " << av[0] <<std::endl;
+		std::cout<<"channel name size==>>"<<av[0].size()<<std::endl;
 		if (ch.hasChannel(av[0])){
 			if (ch.getInviteOnly(av[0])){
 				if (!ch.isInvited(av[0], username)){
-					string toSend = string(ERR) + "You are not invited to this channel\n" + RESET;
+					string toSend = ": 473 " + username + " " + av[0] + " :Cannot join channel (+i)\r\n";
 					send(fd, toSend.c_str(), toSend.size(), 0);
 				}
-				else{
-					ch.addUser(av[0], username, nickname, fd);
-				}
+				else
+					ch.addUser(av[0], username, fd);
 			}
 			else if (ch.getUserLimit(av[0]) != -1 && ch.getUserList(av[0]).size() >= ch.getUserLimit(av[0])){
-				string toSend = string(ERR) + "Channel is full\n" + RESET;
+				string toSend = "Channel is full\r\n";
 				send(fd, toSend.c_str(), toSend.size(), 0);
 			}
 			else if (ch.isKeyRequired(av[0])){
 				if (av[1] != ch.getChannelKey(av[0])){
-					string toSend = string(ERR) + "Invalid channel key\n" + RESET;
+					string toSend = "Invalid channel key\r\n";
 					send(fd, toSend.c_str(), toSend.size(), 0);
 				}
-				else{
-					ch.addUser(av[0], username, nickname, fd);
-				}
+				else
+					ch.addUser(av[0], username, fd);
 			}
-			else{
-				ch.addUser(av[0], username, nickname, fd);
-			}
+			else
+				ch.addUser(av[0], username, fd);
+			std::cout<<"<<<<<<"<<ch.getChannels(av[0]).size()<<std::endl;
 		}
 		else{
-			if (!ch.addChannel(av[0], nickname, fd)){
-				string toSend = string(ERR) + "Channel already exists\n" + RESET;
+			if (!ch.addChannel(av[0], username, fd)){
+
+				string toSend = "Channel already exists\r\n";
 				send(fd, toSend.c_str(), toSend.size(), 0);
 			}
-			else{
-				string toSend = ":" + nickname + "!WEBSERV@localhost JOIN :" + string(av[0]) + "\r\n";
-				string first = 	":localhost 332 " + nickname + " " + string(av[0]) + " :No topic is set\r\n";
-				string second =	": 333 " + nickname + " " + string(av[0]) + " " + nickname + "\r\n";
-				string third = 	":localhost 353 " + nickname + " = #" + string(av[0]) + " @:" + nickname + "\r\n";
-				string last = 	":localhost 366 " + nickname + " #" + string(av[0]) + " :End of /NAMES list.\r\n";
+			else
+			{
+				std::cout<<"<<<<<<"<<ch.getChannels(av[0]).size()<<std::endl;
+				//send_message(t.socket_fd,  ":" + t.nickName + "!" + t.serverName + "@localhost JOIN :"+ channel + "\r\n");
+				//send_message(t.socket_fd , ":localhost 353 " + t.nickName + " = " + channel + " :@" + t.nickName + "\r\n"); 
+    			//send_message(t.socket_fd, ":localhost 366 " + t.nickName + " " + channel + " :End of /NAMES list.\r\n");
+				string toSend = ":" + username + "!" + username +"@localhost JOIN :" + av[0] + "\r\n";
+				string toSend2 = ":localhost 353 " + username + " = " + av[0] + " :@" + username + "\r\n";
+				string toSend3 = ":localhost 366 " + username + " " + av[0] + " :End of /NAMES list.\r\n";
 				send(fd, toSend.c_str(), toSend.size(), 0);
-				send(fd, first.c_str(), first.size(), 0);
-				send(fd, second.c_str(), second.size(), 0);
-				send(fd, third.c_str(), third.size(), 0);
-				send(fd, last.c_str(), last.size(), 0);
+				send(fd, toSend2.c_str(), toSend2.size(), 0);
+				send(fd, toSend3.c_str(), toSend3.size(), 0);
 			}
 		}
 	}

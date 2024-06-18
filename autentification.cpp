@@ -20,7 +20,7 @@ void Server::parseClientInput(int fd, const std::string& data) {
         linestream >> command;  // Read the command from the line
         if(command=="quit")
         {
-            std::cout  <<RED<< "Client <" << fd << "> Disconnected" << std::endl;
+            std::cout  << "Client <" << fd << "> Disconnected" << std::endl;
             close(fd);
         }
         for (size_t i = 0; i < clients.size(); ++i) { 
@@ -32,7 +32,7 @@ void Server::parseClientInput(int fd, const std::string& data) {
                     std::string passe_send = "Please enter your password:\r\n";
                     send(fd, passe_send.c_str(), passe_send.size(), 0);
                 }
-                if (!client.hasPasswordReceived() && command == "PASS" && client.count == 0) {
+                if (!client.hasPasswordReceived() && (command == "PASS" || command == "pass")&& client.count == 0) {
                     std::string passe;
                     linestream >> passe;  // Read the password
                     if(passe!=pass ||  passe.empty())
@@ -55,7 +55,7 @@ void Server::parseClientInput(int fd, const std::string& data) {
                     client.count = 1;
                     std::string nicknamePrompt = "please enter the nickname:\r\n";
                     send(fd, nicknamePrompt.c_str(), nicknamePrompt.size(), 0);
-                } else if (client.hasPasswordReceived() && !client.hasNicknameReceived() && command == "NICK"&& client.count == 1) {
+                } else if (client.hasPasswordReceived() && !client.hasNicknameReceived() && (command == "NICK" || command == "nick") && client.count == 1) {
                     std::string nick;
                     linestream >> nick;  // Read the nickname
                     if(!prsNickname(nick,fd))
@@ -65,7 +65,7 @@ void Server::parseClientInput(int fd, const std::string& data) {
                     std::string usernamePrompt = "Please enter your username:\r\n";
                     send(fd, usernamePrompt.c_str(), usernamePrompt.size(), 0);
                     client.count = 2;
-                } else if (client.hasPasswordReceived() && client.hasNicknameReceived() && !client.hasUsernameReceived() && command == "USER"&&client.count == 2) {
+                } else if (client.hasPasswordReceived() && client.hasNicknameReceived() && !client.hasUsernameReceived() && (command == "USER" || command == "user") &&client.count == 2) {
                     std::istringstream iss(line);
                     std::string comd, username, realname;
                     std::string unusedInt;
@@ -97,8 +97,7 @@ void Server::parseClientInput(int fd, const std::string& data) {
                 }
                 //break;
             }
-        }
-        }
+        }}
 
 void Server::send_welcome_message(int fd,Client client)
 {

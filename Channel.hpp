@@ -9,9 +9,9 @@
 #include <set>
 #include"kickcmd.hpp"
 
-#define ERR "\033[1;31mError:\033[0;0m\n\033[1m"
-#define YELLOW "\033[1;33m"
-#define RESET "\033[0;0m"
+//#define ERR "\033[1;31mError:\033[0;0m\n\033[1m"
+// #define YELLOW "\033[1;33m"
+//#define RESET "\033[0;0m"
 
 using namespace std;
 
@@ -21,6 +21,7 @@ class Channel {
 	private:
 		struct ChannelData {
 			string name;
+			string admin;
 			string topic;
 			set<string> operators;
 			map<string, int> userList;
@@ -32,23 +33,46 @@ class Channel {
 			bool isKeyRequired;
 		};
 		map<string, ChannelData> Channels;
+		
 	public:
+		bool channelexist = false;
 		std::map<std::string,int> allclient;
+		std::map<std::string,int> getChannels(std::string channel_name){
+			std::map<std::string,int> res;
+			for (std::map<std::string, ChannelData>::iterator it = Channels.begin(); it != Channels.end(); it++)
+			{
+				if (it->first.find(channel_name) != std::string::npos)
+				{
+					channelexist = true;
+					res = it->second.userList;
+				}
+			}
+			return res;
+		}
+		
 		bool hasChannel(const string& channelName) const {
 			return Channels.count(channelName) > 0;
 		}
-		bool addChannel(string& channelName, string nickname, int fd) {
+		bool addChannel(string& channelName, string username, int fd) {
+
+			//channelName
+			std::cout<<"|||||"<<channelName<<"|||"<<channelName.size()<<"!!!!!"<<std::endl;
 			std::pair<map<string, ChannelData>::iterator, bool> result = Channels.insert({channelName, ChannelData{}});
 			if (!result.second) {
 				return false;
 			}
+			if(channelName[channelName.length()-1] == '\n')
+				channelName.pop_back();
+				
 			result.first->second.name = channelName;
+			result.first->second.admin = username;
 			result.first->second.topic = "No topic set\n";
-			result.first->second.operators.insert(nickname);
-			result.first->second.userList[nickname] = fd;
+			result.first->second.operators.insert(username);
+			result.first->second.userList[username] = fd;
 			result.first->second.userLimit = -1;
 			return true;
 		}
+
 		const ChannelData& getChannel(const string& channelName) const {
 			if (!hasChannel(channelName)){
 				static ChannelData empty;
@@ -62,33 +86,40 @@ class Channel {
 				return false;
 			else
 				Channels[channelName].topic = newTopic;
+				// Channels[channelName].TopicRestrictions = false;
 			return true;
+		}
+		bool getTopicRestrictions(const string& channelName) const {
+			return Channels.at(channelName).TopicRestrictions;
 		}
 		string getTopic(const string& channelName) const {
 			if (!hasChannel(channelName))
 				return "";
 			return Channels.at(channelName).topic;
 		}
-		bool addUser(const string& channelName, const string& username, const string& nickname, int fd) {
-			Channels[channelName].userList[nickname] = fd;
-			string toSend = ":localhost 353 " + nickname + " = " + channelName + " :@" + Channels.at(channelName).operators.begin()->c_str() + " ";
-			const map<string, int>& userList = Channels.at(channelName).userList;
-			for (map<string, int>::const_iterator it = userList.begin(); it != userList.end(); ++it) {
-				if (nickname == it->first)
+		void send_responsed(int fd, std::string response){
+    	if(send(fd, response.c_str(), response.size(), 0) < 0)
+        std::cout<<"SEND FAILED!"<<std::endl;
+		}
+
+		bool addUser(const string& channelName, const string& username, int fd) {
+
+			Channels[channelName].userList[username] = fd;
+			std::map<string, int>::iterator it;
+			std::string member_str = ":localhost 353 " + username + " = " + channelName + " :@" + Channels[channelName].admin + " ";
+    		for (it = Channels[channelName].userList.begin(); it != Channels[channelName].userList.end(); ++it)
+    		{
+				if (it->first == Channels[channelName].admin)
 					continue;
 				else
-					toSend += it->first + " ";
-			}
-			toSend += "\r\n";
-			string first = ":" + nickname + "!WEBSERV@localhost JOIN :" + channelName + "\r\n";
-			string second = ":locahost 332 " + nickname + " " + channelName + " :No topic is set\r\n";
-			string third = ": 333 " + nickname + " " + channelName + " " + nickname + "\r\n" ;
-			string last = ":localhost 366 " + nickname + " #" + channelName + " :End of /NAMES list.\r\n";
-			send(fd, first.c_str(), first.size(), 0);
-			send(fd, second.c_str(), second.size(), 0);
-			send(fd, third.c_str(), third.size(), 0);
-			send(fd, toSend.c_str(), toSend.size(), 0);
-			send(fd, last.c_str(), last.size(), 0);
+    		    	member_str += it->first + " ";
+    		}
+    		member_str += "\r\n";
+			send(fd, member_str.c_str(), member_str.size(), 0);
+			// send(fd,   ":" + t.nickName + "!" + t.serverName + "@localhost JOIN :"+ channel + "\r\n"))
+			send_responsed(fd, ":" + username + "!" + username + "@localhost JOIN :" + channelName + "\r\n");
+			send_responsed(fd, ":localhost 366 " + username + " " + channelName + " :End of /NAMES list.\r\n");
+			// broadcastMessage(channelName, "has joind the channel", fd, username);
 			return true;
 		}
 		bool addinviteeduser(const string& chan_name, const string& username) {
@@ -132,22 +163,26 @@ class Channel {
 			}
 			return lastJoinedChannel;
 		}
-		void broadcastMessage(const string& channelName, const string& message, int fd, string nickname) {
+		void broadcastMessage(const string& channelName, const string& message, int fd, string username) {
 			if (!hasChannel(channelName)) {
-				string toSend = string(ERR) + "Channel does not exist\n" + RESET;
+				string toSend = "Channel does not exist\r\n" ;
 				send(fd, toSend.c_str(), toSend.size(), 0);
 				return;
 			}
-			string toSend = ":" + nickname + " PRIVMSG " + channelName + " :" + message + "\r\n";
 			const map<string, int>& userList = Channels.at(channelName).userList;
 			for (map<string, int>::const_iterator it = userList.begin(); it != userList.end(); ++it) {
+				cout << "Broadcasting message to user: " << it->first << endl;
+				//":" + nick + "!" + username + "@localhost JOIN :" + channel + "\r\n"
+				string toSend = ":" +  username+ "!" + username + "@localhost JOIN :"  + channelName + "\r\n";
 				if (fd != it->second){
 					send(it->second, toSend.c_str(), toSend.size(), 0);
 				}
 			}
 		}
-		void removeInviteOnly(const string& channelName) {
+		void removeInviteOnly(const string& channelName,std::string nickname,int fd) {
 			Channels[channelName].InviteOnly = false;
+			std::string str = ":" + nickname+ " MODE " + channelName + " -i\r\n";
+			send(fd, str.c_str(), str.size(), 0);
 		}
 		bool getInviteOnly(const string& channelName) const {
 			return Channels.at(channelName).InviteOnly;
@@ -159,6 +194,7 @@ class Channel {
 			Channels[channelName].userLimit = -1;
 		}
 		void removeChannelKey(const string& channelName) {
+			Channels[channelName].invitelist.clear();
 			Channels[channelName].isKeyRequired = false;
 		}
 		bool isKeyRequired(const string& channelName) const {
@@ -170,8 +206,10 @@ class Channel {
 		void removeTopicRestrictions(const string& channelName) {
 			Channels[channelName].TopicRestrictions = false;
 		}
-		void setInviteOnly(const string& channelName) {
-			Channels[channelName].InviteOnly = true;
+		void setInviteOnly(const string& channelName,bool inviteOnly,std::string nickname,int fd) {
+			Channels[channelName].InviteOnly = inviteOnly;
+			std::string str = ":" + nickname+ " MODE " + channelName + " +i\r\n";
+			send(fd, str.c_str(), str.size(), 0);
 		}
 		void setUserLimit(const string& channelName, int limit) {
 			Channels[channelName].userLimit = limit;
@@ -188,4 +226,4 @@ class Channel {
 		}
 };
 
-void	createChannel(string av[2], Channel &ch, string username, string nickname, int fd);
+void	createChannel(string av[2], Channel &ch, string username, int fd);

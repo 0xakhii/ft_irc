@@ -25,16 +25,16 @@ void Invitecmd::invite(std::string av[2], Channel &ch,int fd){
         send_response(fd, "----Invalid command!----\n");
         return;
     }
-    if(channel[0] == '#')
-        channel = channel.substr(1);
-    else{
+    if(channel[0] != '#'){
         std::cout<<"Invalid command"<<std::endl;
         send_response(fd, "----Invalid channel name!----\n");
         return;
     }
+    std::vector<std::string>vec1;
+    vec1 = ch.getChannelNames();
     std::vector<std::string>::iterator it;
-    it = std::find(ch.getChannelNames().begin(),ch.getChannelNames().end(),channel);
-    if(it==ch.getChannelNames().end()){
+    it = std::find(vec1.begin(),vec1.end(),channel);
+    if(it==vec1.end()){
         std::cout<<"Channel not found"<<std::endl;
         send_response(fd, nosuchchannel(channel));
         //ghanssendi l user li sift request message bini makaynach had channel
@@ -61,7 +61,7 @@ void Invitecmd::invite(std::string av[2], Channel &ch,int fd){
     }
     
     std::map<std::string,int>::iterator it1;
-    it1 = ch.getUserList(channel).find(user);
+    it1 = ch.getChannels(channel).find(user);
     if(it1!=ch.getUserList(channel).end()){
         std::cout<<"User is already in the channel"<<std::endl;
         send_response(fd, useronchannel(user,channel));     

@@ -1,11 +1,11 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
-#define RED "\e[1;31m" //-> for red color
-#define WHI "\e[0;37m" //-> for white color
-#define GRE "\e[1;32m" //-> for green color
-#define YEL "\e[1;33m" //-> for yellow color
-#define GREEN "\033[1;32m" //->green
-#define ORANGE "\033[38;2;255;165;0m" //->orange
+//#define RED "\e[1;31m" //-> for red color
+//#define WHI "\e[0;37m" //-> for white color
+//#define GRE "\e[1;32m" //-> for green color
+//#define YEL "\e[1;33m" //-> for yellow color
+//#define GREEN "\033[1;32m" //->green
+//#define ORANGE "\033[38;2;255;165;0m" //->orange
 #include <iostream>
 #include <vector> //-> for vector
 #include <sys/socket.h> //-> for socket()
@@ -65,5 +65,6 @@ class Server{
 
 };
 void	ParseCmd(string cmd, Server& serv, int fd);
-
+void msgtochannel(string av[2],int fd,Server &serv);
+std::vector<std::string> take_args(std::string args);
 #endif

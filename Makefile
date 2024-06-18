@@ -6,7 +6,7 @@ SRCS = ParseCmd.cpp Channel.cpp kickcmd.cpp \
 
 CXX = c++
 
-CXXFLAGS = -g3 -fsanitize=address#-Wall -Wextra -Werror  #-std=c++98
+CXXFLAGS = -fsanitize=address -g3 #-Wall -Wextra -Werror  #-std=c++98
 
 OBJS = ${SRCS:.cpp=.o}
 

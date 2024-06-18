@@ -22,23 +22,6 @@ void take_arguments(std::string args, std::string av[2])
 	}
 }
 
-void	splitArgs(string av[2], string args){
-	size_t spacePos = args.find_first_of(' ');
-	while (spacePos != string::npos && args[spacePos + 1] == ' ')
-		spacePos = args.find_first_of(' ', spacePos + 1);
-	if (spacePos != string::npos){
-		av[0] = args.substr(0, spacePos);
-		av[1] = args.substr(spacePos + 1);
-	}
-	else{
-		av[0] = args;
-		av[1].clear();
-	}
-	if (av[1][av[1].length() - 1] == '\n')
-		av[1].pop_back();
-	if (av[0][av[0].length() - 1] == '\n')
-		av[0].pop_back();
-}
 string getNickbyfd(Server& serv, int fd) {
 	for (size_t i = 0; i < serv.clients.size(); i++) {
 		if (serv.clients[i].getFd() == fd)

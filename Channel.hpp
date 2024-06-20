@@ -61,9 +61,6 @@ class Channel {
 			if (!result.second) {
 				return false;
 			}
-			if(channelName[channelName.length()-1] == '\n')
-				channelName.pop_back();
-				
 			result.first->second.name = channelName;
 			result.first->second.admin = username;
 			result.first->second.topic = "No topic set\n";
@@ -131,8 +128,8 @@ class Channel {
 			channelData.userList.erase(username);
 			return true;
 		}
-		bool isOperator(const string& channelName, const string& username) const {
-			return Channels.at(channelName).operators.count(username) > 0;
+		bool isOperator(const string& channelName, const string& nickname) const {
+			return Channels.at(channelName).operators.count(nickname) > 0;
 		}
 		bool addOperator(const string& channelName, const string& username) {
 			Channels[channelName].operators.insert(username);

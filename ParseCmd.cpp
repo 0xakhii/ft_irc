@@ -57,7 +57,7 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 		if (cmd == "JOIN"){ // Join a channel. If the channel specified does not exist, a new one will be created with the given name.
 			for(size_t i = 0; i < serv.clients.size(); i++){
 				if (serv.clients[i].getFd() == fd)
-					createChannel(av, serv.ch, serv.clients[i].getUsername(), serv.clients[i].getFd());
+					createChannel(av, serv.ch, serv.clients[i].getNickname(), serv.clients[i].getFd());
 			}
 			std::cout<<"channelsize----->>"<<serv.ch.getChannels(av[0].substr(1)).size()<<std::endl;
 		}
@@ -71,30 +71,29 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 		}
 		else if (cmd == "TOPIC")
 		{
-			if(serv.ch.getTopicRestrictions(av[0]))
-			{
-			if (serv.ch.isOperator(av[0],getNickbyfd(serv,fd)))
-			{
-				av[1].erase(0,1);
-				serv.ch.setTopic(av[0], av[1], getNickbyfd(serv, fd));
-				string topic = ":localhost 332 " + getNickbyfd(serv,fd) + " " + av[0] + " :" + serv.ch.getTopic(av[0]) + "\r\n";
-				send(fd, topic.c_str(), topic.size(), 0);
-				std::map<std::string, int> vec2  = serv.ch.getChannels(av[0]);
-				std::map<std::string, int> ::iterator it5  =vec2.begin();
-				for(it5;it5!=vec2.end();it5++)
+			if(serv.ch.getTopicRestrictions(av[0])){
+				if (serv.ch.isOperator(av[0],getNickbyfd(serv,fd)))
 				{
-					if(it5->second != fd)
-						send(it5->second, topic.c_str(), topic.size(), 0);
-					else
-						continue;
+					av[1].erase(0,1);
+					serv.ch.setTopic(av[0], av[1], getNickbyfd(serv, fd));
+					string topic = ":localhost 332 " + getNickbyfd(serv,fd) + " " + av[0] + " :" + serv.ch.getTopic(av[0]) + "\r\n";
+					send(fd, topic.c_str(), topic.size(), 0);
+					std::map<std::string, int> vec2  = serv.ch.getChannels(av[0]);
+					std::map<std::string, int> ::iterator it5  =vec2.begin();
+					for(it5;it5!=vec2.end();it5++)
+					{
+						if(it5->second != fd)
+							send(it5->second, topic.c_str(), topic.size(), 0);
+						else
+							continue;
+					}
 				}
-			}
-			else
-			{
-				string toSend = ":localhost 482 " + av[0] + " :You're not channel operator\r\n";
-				send(fd, toSend.c_str(), toSend.size(), 0);
-				
-			}
+				else
+				{
+					string toSend = ":localhost 482 " + av[0] + " :You're not channel operator\r\n";
+					send(fd, toSend.c_str(), toSend.size(), 0);
+					
+				}
 			}
 			else
 			{
@@ -116,23 +115,23 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 		else if (cmd == "MODE"){ // Set or remove options (or modes) to a given target.
 			char modeSign = av[1][0];
 			char modeFlag = av[1][1];
+			av[1] = &av[1][2];
 			if (av[0][0] == '#'){
-				size_t i = 0;
-				av[1] = &av[1][2];
-				while(av[1][i] == ' ')
-					i++;
-				av[1] = &av[1][i];
-				if (av[1][av[1].length() - 1] == '\n')
-					av[1].pop_back();
+				av[0].erase(0, 1);
+				for (size_t i = 0; i < av[1].size(); i++){
+					if (av[1][i] == ' ')
+						av[1].erase(i, 1);
+				}
 				if (modeSign == '+'){
 					switch (modeFlag)
 					{
 						case 'o': // Give channel operator privilege
 							for(size_t i = 0; i < serv.clients.size(); ++i){
-								// check for spaces before and newline in the end;
-								if (serv.clients[i].getUsername() == av[1]){
-									if (serv.ch.addOperator(av[0], serv.clients[i].getUsername())){
-										string toSend = "You are now an operator\r\n" ;
+								if (serv.clients[i].getNickname() == av[1]){
+									if (serv.ch.addOperator(av[0], serv.clients[i].getNickname())){
+										string toSend = ":localhost 351 " + serv.clients[i].getNickname() + "!" \
+										+ serv.clients[i].getUsername() + "@localhost MODE #" + av[0] + " +o " + \
+										serv.clients[i].getNickname() + "\nYou are now an operator\r\n" ;
 										send(serv.clients[i].getFd(), toSend.c_str(), toSend.size(), 0);
 									}
 								}
@@ -230,7 +229,8 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 			cout << "Client <" << fd << "> Disconnected\n";
 		}
 		else if (cmd == "PING"){
-			string toSend = "PONG irc.server.com :hello\r\n";
+			string toSend = ":localhost " + getNickbyfd(serv, fd) + "!"\
+			+ getUserbyfd(serv, fd) + " PONG " + av[0] + "\r\n";
 			send(fd, toSend.c_str(), toSend.size(), 0);
 		}
 	}

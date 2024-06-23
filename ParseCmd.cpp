@@ -4,8 +4,6 @@
 #include "kickcmd.hpp"
 #include "Invitecmd.hpp"
 
-//fenetre f privmsg
-
 void take_arguments(std::string args, std::string av[2])
 {
 	int i = 0;
@@ -47,20 +45,12 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 	else{
 		string args = cmd.substr(cmd.find_first_of(' ') + 1);
 		string lastArg = args.substr(args.find_last_of(' ') + 1);
-		//std::cout<<"++++++++args : "<<args<<"size==>>"<<args.size()<<std::endl;
-		//exit(0);
+		lastArg = lastArg.substr(0, lastArg.size() - 2);
 		cmd = cmd.substr(0, cmd.find_first_of(' '));
 		string av[2];
 		take_arguments(args, av);
-		//std::cout<<"av[0] : "<<av[0]<<"av[0].size : "<<av[0].size()<<std::endl;
-		//std::cout<<"av[1] : "<<av[1]<<"av[1].size : "<<av[1].size()<<std::endl;
-		//splitArgs(av, args);
 		if (cmd == "JOIN"){ // Join a channel. If the channel specified does not exist, a new one will be created with the given name.
-			for(size_t i = 0; i < serv.clients.size(); i++){
-				if (serv.clients[i].getFd() == fd)
-					createChannel(av, serv.ch, serv.clients[i].getNickname(), serv.clients[i].getFd());
-			}
-			std::cout<<"channelsize----->>"<<serv.ch.getChannels(av[0].substr(1)).size()<<std::endl;
+			createChannel(av, serv.ch, getNickbyfd(serv, fd), fd);
 		}
 		else if (cmd == "INVITE"){ // Invite a user to a channel.
 			inv.client_name = getUserbyfd(serv, fd);
@@ -121,10 +111,7 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 		else if (cmd == "MODE"){ // Set or remove options (or modes) to a given target.
 			char modeSign = av[1][0];
 			char modeFlag = av[1][1];
-			cout << "modeFlag: " << modeFlag << " modeSign: " << modeSign << endl;
-			cout << "av[0]: " << av[0] << "lastArg: " << lastArg << endl;
 			if (av[0][0] == '#'){
-				av[0].erase(0, 1);
 				if (modeSign == '+'){
 					switch (modeFlag)
 					{

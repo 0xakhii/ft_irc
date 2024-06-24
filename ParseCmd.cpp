@@ -4,7 +4,7 @@
 #include "kickcmd.hpp"
 #include "Invitecmd.hpp"
 
-void take_arguments(std::string args, std::string av[2])
+void take_arguments(string args, string av[2])
 {
 	int i = 0;
 	int j = 0;
@@ -38,8 +38,7 @@ string getUserbyfd(Server& serv, int fd) {
 void	ParseCmd(string cmd, Server& serv, int fd){
 	KickCmd k;
 	Invitecmd inv;
-	std::cout<<"cmd *******************: "<<cmd<<std::endl;
-	std::string cmd_tmp = cmd.substr(cmd.find_first_of(' ') + 1);
+	string cmd_tmp = cmd.substr(cmd.find_first_of(' ') + 1);
 	if (cmd.empty())
 		return;
 	else{
@@ -63,39 +62,34 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 		else if (cmd == "TOPIC"){
 			if (!av[1].empty()){
 				if(serv.ch.getTopicRestrictions(av[0])){
-					if (serv.ch.isOperator(av[0],getNickbyfd(serv,fd)))
-					{
+					if (serv.ch.isOperator(av[0],getNickbyfd(serv,fd))){
 						av[1].erase(0,1);
 						serv.ch.setTopic(av[0], av[1], getNickbyfd(serv, fd));
 						string topic = ":localhost 332 " + getNickbyfd(serv,fd) + " " + av[0] + " :" + serv.ch.getTopic(av[0]) + "\r\n";
 						send(fd, topic.c_str(), topic.size(), 0);
-						std::map<std::string, int> vec2  = serv.ch.getChannels(av[0]);
-						std::map<std::string, int> ::iterator it5  =vec2.begin();
-						for(it5;it5!=vec2.end();it5++)
-						{
+						map<string, int> vec2  = serv.ch.getChannels(av[0]);
+						map<string, int> ::iterator it5  =vec2.begin();
+						for(it5;it5!=vec2.end();it5++){
 							if(it5->second != fd)
 								send(it5->second, topic.c_str(), topic.size(), 0);
 							else
 								continue;
 						}
 					}
-					else
-					{
+					else{
 						string toSend = ":localhost 482 " + av[0] + " :You're not channel operator\r\n";
 						send(fd, toSend.c_str(), toSend.size(), 0);
 						
 					}
 				}
-				else
-				{
+				else{
 					av[1].erase(0,1);
 					serv.ch.setTopic(av[0], av[1], getNickbyfd(serv, fd));
 					string topic = ":localhost 332 " + getNickbyfd(serv,fd) + " " + av[0] + " :" + serv.ch.getTopic(av[0]) + "\r\n";
 					send(fd, topic.c_str(), topic.size(), 0);
-					std::map<std::string, int> vec2  = serv.ch.getChannels(av[0]);
-					std::map<std::string, int> ::iterator it5  =vec2.begin();
-					for(it5;it5!=vec2.end();it5++)
-					{
+					map<string, int> vec2  = serv.ch.getChannels(av[0]);
+					map<string, int> ::iterator it5  =vec2.begin();
+					for(it5;it5!=vec2.end();it5++){
 						if(it5->second != fd)
 							send(it5->second, topic.c_str(), topic.size(), 0);
 						else
@@ -113,12 +107,11 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 			char modeFlag = av[1][1];
 			if (av[0][0] == '#'){
 				if (modeSign == '+'){
-					switch (modeFlag)
-					{
+					switch (modeFlag){
 						case 'o': // Give channel operator privilege
 							for(size_t i = 0; i < serv.clients.size(); ++i){
 								if (serv.clients[i].getNickname() == lastArg){
-									if (serv.ch.addOperator(av[0], serv.clients[i].getNickname())){
+									if (serv.ch.addOperator(av[0], serv.clients[i].getNickname(), fd)){
 										string toSend = ":localhost 351 " + serv.clients[i].getNickname() + "!" \
 										+ serv.clients[i].getUsername() + "@localhost MODE #" + av[0] + " +o " + \
 										serv.clients[i].getNickname() + "\nYou are now an operator\r\n" ;
@@ -134,54 +127,53 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 						case 'l': // Set the user limit to channel
 							if (!lastArg.empty()) {
 								int limit = stoi(lastArg);
-								serv.ch.setUserLimit(av[0], limit);
+								serv.ch.setUserLimit(av[0], limit, getNickbyfd(serv, fd),fd);
 							}
 							else {
-								string toSend ="User limit not specified\r\n";
+								string toSend = "User limit not specified\r\n";
 								send(fd, toSend.c_str(), toSend.size(), 0);
 							}
 							break;
 						case 'k': // Set the channel key (password)
 							if (!lastArg.empty()) {
-								serv.ch.setChannelKey(av[0], lastArg);
+								serv.ch.setChannelKey(av[0], lastArg, getNickbyfd(serv, fd),fd);
 							}
 							else{
-								string toSend = "Channel key not specified\r\n" ;
+								string toSend = ":localhost 475 " + av[0] + " :Channel key not specified\r\n" ;
 								send(fd, toSend.c_str(), toSend.size(), 0);
 							}
 							break;
 						case 't': // Set the restrictions of the TOPIC command to channel operators
-							serv.ch.setTopicRestrictions(av[0]);
+							serv.ch.setTopicRestrictions(av[0], getNickbyfd(serv, fd),fd);
 							break;
 						default:
-							string toSend =  "Invalid Mode Flag\r\n";
+							string toSend = ":localhost 472 " + getNickbyfd(serv,fd) +  " :Invalid Mode Flag\r\n";
 							send(fd, toSend.c_str(), toSend.size(), 0);
 							break;
 					}
 				}
 				else if (modeSign == '-'){
-					switch (modeFlag)
-					{
+					switch (modeFlag){
 						case 'o': // take channel operator privilege
 							for(size_t i = 0; i < serv.clients.size(); i++){
-								if (serv.clients[i].getFd() == fd)
-									serv.ch.removeOperator(av[0], serv.clients.back().getUsername());
+								if (serv.clients[i].getNickname() == lastArg)
+									serv.ch.removeOperator(av[0], serv.clients[i].getNickname(), fd);
 							}
 							break;
 						case 'i': // remove Invite-only channel
 							serv.ch.removeInviteOnly(av[0], getNickbyfd(serv, fd),fd);
 							break;
 						case 'l': // remove the user limit to channel
-							serv.ch.removeUserLimit(av[0]);
+							serv.ch.removeUserLimit(av[0], getNickbyfd(serv, fd), fd);
 							break;
 						case 'k': // remove the channel key (password)
-							serv.ch.removeChannelKey(av[0]);
+							serv.ch.removeChannelKey(av[0], getNickbyfd(serv, fd), fd);
 							break;
 						case 't': // remove the restrictions of the TOPIC command to channel operators
-							serv.ch.removeTopicRestrictions(av[0]);
+							serv.ch.removeTopicRestrictions(av[0], getNickbyfd(serv, fd), fd);
 							break;
 						default:
-							string toSend ="Invalid Mode Flag\r\n";
+							string toSend = ":localhost 472 " + getNickbyfd(serv,fd) + " :Invalid Mode Flag\r\n";
 							send(fd, toSend.c_str(), toSend.size(), 0);
 							break;
 					}
@@ -189,17 +181,12 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 			}
 		}
 		else if (cmd == "MSG" || cmd == "PRIVMSG"){ // Send private messages between users.
-			
-			std::map<string,int> ss = serv.ch.getChannels(av[0]);	
-			if(av[0][0] == '#')
-			{
-				std::cout << "av[0]=============================>>" << av[0] << std::endl;
+			map<string,int> ss = serv.ch.getChannels(av[0]);	
+			if(av[0][0] == '#'){
 				msgtochannel(av, fd, serv);
 				return;
 			}
-			else
-			{
-				//std::cout<<"here"<<std::endl;
+			else{
 				for(size_t i = 0; i < serv.clients.size(); i++){
 				if (serv.clients[i].getUsername() == av[0]){
 					av[1].erase(0,1);
@@ -208,12 +195,11 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 					return;
 				}
 			}
-			string toSend = "User not found\r\n";
+			string toSend = av[0] + " 401 :No suck Nickname/Channel\r\n";
 			send(fd, toSend.c_str(), toSend.size(), 0);
 			}
 		}
 		else if (cmd == "QUIT"){ // Terminate a client’s connection to the server.
-			cout << "quit message: " << av[0] << endl;
 			serv.ClearClients(fd);
 			close(fd);
 			cout << "Client <" << fd << "> Disconnected\n";
@@ -226,45 +212,17 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 	}
 }
 
-// std::vector<std::string> take_args(std::string args)
-// {
-// 	std::vector<std::string> arg;
-// 	std::string tmp;
-// 	for (size_t i = 0; i < args.length(); i++)
-// 	{
-// 		if (args[i] == ' ')
-// 		{
-// 			arg.push_back(tmp);
-// 			tmp.clear();
-// 		}
-// 		else
-// 			tmp += args[i];
-// 	}
-// 	arg.push_back(tmp);
-// 	return (arg);
-// }
 
-void msgtochannel(std::string av[2],int fd,Server &serv)
-{
-	//std::vector<std::string> arg = take_args(args);
-	std::string ch = av[0];
-	std::string msg = av[1];
-	std::cout << "channel : " << ch << " msg : " << msg << std::endl;
-	//ch.erase(0,1);
-	std::map<std::string, int> members = serv.ch.getChannels(ch);
-	std::cout << "members size : " << members.size() << std::endl;
+void msgtochannel(string av[2],int fd,Server &serv){
+	string ch = av[0];
+	string msg = av[1];
+	map<string, int> members = serv.ch.getChannels(ch);
 	msg.erase(0,1);
-	//msg = ":" + cli.nickName + " PRIVMSG " + req.arg[0] + " :" + str + "\r\n";
 	string res = ":" + getNickbyfd(serv, fd) + " PRIVMSG " + ch + " :" + msg + "\r\n";
-	// string res = ":" + getNickbyfd(serv, fd) + "!" + getUserbyfd(serv,fd) + "@" + getNickbyfd(serv, fd) + " PRIVMSG " + ch + " :" + msg + "\r\n";
-	for (std::map<std::string, int>::iterator it = members.begin(); it != members.end(); it++)
+	for (map<string, int>::iterator it = members.begin(); it != members.end(); it++)
 	{
-		std::cout << "nicks : " << it->first <<"size==" << it->first.size() << std::endl;
 		if (it->second != fd)
-		{
-			//msg = ":" + cli.nickName + " PRIVMSG " + req.arg[0] + " :" + str + "\r\n";
 			send(it->second, res.c_str(), res.size(), 0);
-		}
 		else
 			continue;
 	}

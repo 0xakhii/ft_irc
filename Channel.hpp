@@ -9,14 +9,9 @@
 #include <set>
 #include"kickcmd.hpp"
 
-//#define ERR "\033[1;31mError:\033[0;0m\n\033[1m"
-// #define YELLOW "\033[1;33m"
-//#define RESET "\033[0;0m"
-
 using namespace std;
 
 class KickCmd;
-
 class Channel {
 	private:
 		struct ChannelData {
@@ -36,12 +31,12 @@ class Channel {
 		
 	public:
 		bool channelexist = false;
-		std::map<std::string,int> allclient;
-		std::map<std::string,int> getChannels(std::string channel_name){
-			std::map<std::string,int> res;
-			for (std::map<std::string, ChannelData>::iterator it = Channels.begin(); it != Channels.end(); it++)
+		map<string,int> allclient;
+		map<string,int> getChannels(string channel_name){
+			map<string,int> res;
+			for (map<string, ChannelData>::iterator it = Channels.begin(); it != Channels.end(); it++)
 			{
-				if (it->first.find(channel_name) != std::string::npos)
+				if (it->first.find(channel_name) != string::npos)
 				{
 					channelexist = true;
 					res = it->second.userList;
@@ -54,10 +49,7 @@ class Channel {
 			return Channels.count(channelName) > 0;
 		}
 		bool addChannel(string& channelName, string username, int fd) {
-
-			//channelName
-			std::cout<<"|||||"<<channelName<<"|||"<<channelName.size()<<"!!!!!"<<std::endl;
-			std::pair<map<string, ChannelData>::iterator, bool> result = Channels.insert({channelName, ChannelData{}});
+			pair<map<string, ChannelData>::iterator, bool> result = Channels.insert({channelName, ChannelData{}});
 			if (!result.second) {
 				return false;
 			}
@@ -83,7 +75,6 @@ class Channel {
 				return false;
 			else
 				Channels[channelName].topic = newTopic;
-				// Channels[channelName].TopicRestrictions = false;
 			return true;
 		}
 		bool getTopicRestrictions(const string& channelName) const {
@@ -94,16 +85,16 @@ class Channel {
 				return "";
 			return Channels.at(channelName).topic;
 		}
-		void send_responsed(int fd, std::string response){
+		void send_responsed(int fd, string response){
     	if(send(fd, response.c_str(), response.size(), 0) < 0)
-        std::cout<<"SEND FAILED!"<<std::endl;
+        cout<<"SEND FAILED!"<<endl;
 		}
 
 		bool addUser(const string& channelName, const string& username, int fd) {
 
 			Channels[channelName].userList[username] = fd;
-			std::map<string, int>::iterator it;
-			std::string member_str = ":localhost 353 " + username + " = " + channelName + " :@" + Channels[channelName].admin + " ";
+			map<string, int>::iterator it;
+			string member_str = ":localhost 353 " + username + " = " + channelName + " :@" + Channels[channelName].admin + " ";
     		for (it = Channels[channelName].userList.begin(); it != Channels[channelName].userList.end(); ++it)
     		{
 				if (it->first == Channels[channelName].admin)
@@ -113,10 +104,8 @@ class Channel {
     		}
     		member_str += "\r\n";
 			send(fd, member_str.c_str(), member_str.size(), 0);
-			// send(fd,   ":" + t.nickName + "!" + t.serverName + "@localhost JOIN :"+ channel + "\r\n"))
 			send_responsed(fd, ":" + username + "!" + username + "@localhost JOIN :" + channelName + "\r\n");
 			send_responsed(fd, ":localhost 366 " + username + " " + channelName + " :End of /NAMES list.\r\n");
-			// broadcastMessage(channelName, "has joind the channel", fd, username);
 			return true;
 		}
 		bool addinviteeduser(const string& chan_name, const string& username) {
@@ -131,12 +120,22 @@ class Channel {
 		bool isOperator(const string& channelName, const string& nickname) const {
 			return Channels.at(channelName).operators.count(nickname) > 0;
 		}
-		bool addOperator(const string& channelName, const string& username) {
-			Channels[channelName].operators.insert(username);
+		bool addOperator(const string& channelName, const string& nickname, int fd) {
+			if (!isOperator(channelName, nickname)){
+				string toSend = ":localhost 482 " + channelName + " :You're not channel operator\r\n";
+				send(fd, toSend.c_str(), toSend.size(), 0);
+				return false;
+			}
+			Channels[channelName].operators.insert(nickname);
 			return true;
 		}
-		bool removeOperator(const string& channelName, const string& username) {
-			return Channels.at(channelName).operators.erase(username) > 0;
+		bool removeOperator(const string& channelName, const string& nickname, int fd) {
+			if (!isOperator(channelName, nickname)){
+				string toSend = ":localhost 482 " + channelName + " :You're not channel operator\r\n";
+				send(fd, toSend.c_str(), toSend.size(), 0);
+				return false;
+			}
+			return Channels.at(channelName).operators.erase(nickname) > 0;
 		}
 		map<string, int> getUserList(const string& channelName) const {
 			if (!hasChannel(channelName)) {
@@ -160,25 +159,14 @@ class Channel {
 			}
 			return lastJoinedChannel;
 		}
-		void broadcastMessage(const string& channelName, const string& message, int fd, string username) {
-			if (!hasChannel(channelName)) {
-				string toSend = "Channel does not exist\r\n" ;
+		void removeInviteOnly(const string& channelName, const string& nickname, int fd) {
+			if (!isOperator(channelName, nickname)){
+				string toSend = ":localhost 482 " + channelName + " :You're not channel operator\r\n";
 				send(fd, toSend.c_str(), toSend.size(), 0);
 				return;
 			}
-			const map<string, int>& userList = Channels.at(channelName).userList;
-			for (map<string, int>::const_iterator it = userList.begin(); it != userList.end(); ++it) {
-				cout << "Broadcasting message to user: " << it->first << endl;
-				//":" + nick + "!" + username + "@localhost JOIN :" + channel + "\r\n"
-				string toSend = ":" +  username+ "!" + username + "@localhost JOIN :"  + channelName + "\r\n";
-				if (fd != it->second){
-					send(it->second, toSend.c_str(), toSend.size(), 0);
-				}
-			}
-		}
-		void removeInviteOnly(const string& channelName,std::string nickname,int fd) {
 			Channels[channelName].InviteOnly = false;
-			std::string str = ":" + nickname+ " MODE " + channelName + " -i\r\n";
+			string str = ":" + nickname+ " MODE " + channelName + " -i\r\n";
 			send(fd, str.c_str(), str.size(), 0);
 		}
 		bool getInviteOnly(const string& channelName) const {
@@ -187,10 +175,20 @@ class Channel {
 		bool isInvited(const string& channelName, const string& username) const {
 			return find(Channels.at(channelName).invitelist.begin(), Channels.at(channelName).invitelist.end(), username) != Channels.at(channelName).invitelist.end();
 		}
-		void removeUserLimit(const string& channelName) {
+		void removeUserLimit(const string& channelName, const string& nickname, int fd) {
+			if (!isOperator(channelName, nickname)){
+				string toSend = ":localhost 482 " + channelName + " :You're not channel operator\r\n";
+				send(fd, toSend.c_str(), toSend.size(), 0);
+				return;
+			}
 			Channels[channelName].userLimit = -1;
 		}
-		void removeChannelKey(const string& channelName) {
+		void removeChannelKey(const string& channelName, const string& nickname, int fd) {
+			if (!isOperator(channelName, nickname)){
+				string toSend = ":localhost 482 " + channelName + " :You're not channel operator\r\n";
+				send(fd, toSend.c_str(), toSend.size(), 0);
+				return;
+			}
 			Channels[channelName].invitelist.clear();
 			Channels[channelName].isKeyRequired = false;
 		}
@@ -200,25 +198,50 @@ class Channel {
 		string getChannelKey(const string& channelName) const {
 			return Channels.at(channelName).ChannelKey;
 		}
-		void removeTopicRestrictions(const string& channelName) {
+		void removeTopicRestrictions(const string& channelName, const string& nickname, int fd) {
+			if (!isOperator(channelName, nickname)){
+				string toSend = ":localhost 482 " + channelName + " :You're not channel operator\r\n";
+				send(fd, toSend.c_str(), toSend.size(), 0);
+				return;
+			}
 			Channels[channelName].TopicRestrictions = false;
 		}
-		void setInviteOnly(const string& channelName,bool inviteOnly,std::string nickname,int fd) {
+		void setInviteOnly(const string& channelName,bool inviteOnly,string nickname,int fd) {
+			if (!isOperator(channelName, nickname)){
+				string toSend = ":localhost 482 " + channelName + " :You're not channel operator\r\n";
+				send(fd, toSend.c_str(), toSend.size(), 0);
+				return;
+			}
 			Channels[channelName].InviteOnly = inviteOnly;
-			std::string str = ":" + nickname+ " MODE " + channelName + " +i\r\n";
+			string str = ":" + nickname+ " MODE " + channelName + " +i\r\n";
 			send(fd, str.c_str(), str.size(), 0);
 		}
-		void setUserLimit(const string& channelName, int limit) {
+		void setUserLimit(const string& channelName, int limit, const string& nickname, int fd) {
+			if (!isOperator(channelName, nickname)){
+				string toSend = ":localhost 482 " + channelName + " :You're not channel operator\r\n";
+				send(fd, toSend.c_str(), toSend.size(), 0);
+				return;
+			}
 			Channels[channelName].userLimit = limit;
 		}
 		int getUserLimit(const string& channelName) const {
 			return Channels.at(channelName).userLimit;
 		}
-		void setChannelKey(const string& channelName, const string& key) {
+		void setChannelKey(const string& channelName, const string& key, const string& nickname, int fd) {
+			if (!isOperator(channelName, nickname)){
+				string toSend = ":localhost 482 " + channelName + " :You're not channel operator\r\n";
+				send(fd, toSend.c_str(), toSend.size(), 0);
+				return;
+			}
 			Channels[channelName].ChannelKey = key;
 			Channels[channelName].isKeyRequired = true;
 		}
-		void setTopicRestrictions(const string& channelName) {
+		void setTopicRestrictions(const string& channelName, const string& nickname, int fd) {
+			if (!isOperator(channelName, nickname)){
+				string toSend = ":localhost 482 " + channelName + " :You're not channel operator\r\n";
+				send(fd, toSend.c_str(), toSend.size(), 0);
+				return;
+			}
 			Channels[channelName].TopicRestrictions = true;
 		}
 };

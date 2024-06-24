@@ -71,6 +71,10 @@ void Server::ReceiveNewData(int fd)
         std::string data(buff);
         int k=0;
         std::cout<<"----"<<k<<"---"<<fd<<std::endl;
+        if (data == "PING WEBSERV\r\n"){
+            std::string toSend = ":localhost PONG\r\n";
+            send(fd, toSend.c_str(), toSend.size(), 0);
+        }
         parseClientInput(fd, data);
         for (size_t i = 0; i < clients.size(); i++){
             if (clients[i].getFd() == fd){

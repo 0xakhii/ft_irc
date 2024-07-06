@@ -4,19 +4,18 @@
 #include "kickcmd.hpp"
 #include "Invitecmd.hpp"
 
-void take_arguments(string args, string av[2])
+void take_arguments(string args, string av[10000])
 {
 	int i = 0;
 	int j = 0;
 
-	while(args.size()-2>i && j<2)
+	while(args.size()-2>i)
 	{
 		if(args[i] != ' ')
 			av[j] += args[i];
 		else
 			j++;
 		i++;
-
 	}
 }
 
@@ -46,7 +45,7 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 		string lastArg = args.substr(args.find_last_of(' ') + 1);
 		lastArg = lastArg.substr(0, lastArg.size() - 2);
 		cmd = cmd.substr(0, cmd.find_first_of(' '));
-		string av[2];
+		string av[10000];
 		take_arguments(args, av);
 		if (cmd == "JOIN"){ // Join a channel. If the channel specified does not exist, a new one will be created with the given name.
 			createChannel(av, serv.ch, getNickbyfd(serv, fd), fd);
@@ -125,21 +124,27 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 							
 							break;
 						case 'l': // Set the user limit to channel
-							if (!lastArg.empty()) {
-								int limit = stoi(lastArg);
+							if (!av[2].empty()) {
+								std::cout << "lastArg: ==============" << lastArg << std::endl;
+								//hna rh tad5l wa5a matansetech largument l5er otatexisti hit stoi tatreturni chi haja machi talhih
+								int limit = stoi(av[2]);
 								serv.ch.setUserLimit(av[0], limit, getNickbyfd(serv, fd),fd);
 							}
 							else {
-								string toSend = "User limit not specified\r\n";
+								//": 461 " + cmd + " :Not enough parameters\r\n"
+								string toSend = ": 461 " + cmd + " :Not enough parameters\r\n";
 								send(fd, toSend.c_str(), toSend.size(), 0);
 							}
 							break;
-						case 'k': // Set the channel key (password)
-							if (!lastArg.empty()) {
+						case 'k':
+						
+							if (!av[2].empty()) {
+								std::cout << "lastArg: ==============" << lastArg << std::endl; // Set the channel key (password)
 								serv.ch.setChannelKey(av[0], lastArg, getNickbyfd(serv, fd),fd);
 							}
 							else{
-								string toSend = ":localhost 475 " + av[0] + " :Channel key not specified\r\n" ;
+								std::cout<<"cmdsize: ================="<<cmd.size()<<std::endl;
+								string toSend = ": 461 " + cmd + " :Not enough parameters\r\n";
 								send(fd, toSend.c_str(), toSend.size(), 0);
 							}
 							break;
@@ -187,10 +192,11 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 				return;
 			}
 			else{
+				string m = relaymsg(av);
 				for(size_t i = 0; i < serv.clients.size(); i++){
 				if (serv.clients[i].getUsername() == av[0]){
-					av[1].erase(0,1);
-					string toSend = ":" + getNickbyfd(serv, fd) + "!~" + getUserbyfd(serv, fd) + "@localhost PRIVMSG " + av[0] + " :" + av[1] + "\r\n";
+					m.erase(0,1);
+					string toSend = ":" + getNickbyfd(serv, fd) + "!~" + getUserbyfd(serv, fd) + "@localhost PRIVMSG " + av[0] + " :" + m + "\r\n";
 					send(serv.clients[i].getFd(), toSend.c_str(), toSend.size(), 0);
 					return;
 				}
@@ -212,10 +218,20 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 	}
 }
 
+std::string relaymsg(string av[10000])
+{
+	string msg;
+	for (int i = 1; av[i] != ""; i++)
+	{
+		msg += av[i] + " ";
+	}
+	return (msg);
+}
 
-void msgtochannel(string av[2],int fd,Server &serv){
+void msgtochannel(string av[10000],int fd,Server &serv){
 	string ch = av[0];
-	string msg = av[1];
+	string msg = relaymsg(av);
+	std::cout << "msg--------------: " << msg << std::endl;
 	map<string, int> members = serv.ch.getChannels(ch);
 	msg.erase(0,1);
 	string res = ":" + getNickbyfd(serv, fd) + " PRIVMSG " + ch + " :" + msg + "\r\n";

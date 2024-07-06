@@ -247,3 +247,4 @@ class Channel {
 };
 
 void	createChannel(string av[2], Channel &ch, string username, int fd);
+std::string relaymsg(string av[10000]);

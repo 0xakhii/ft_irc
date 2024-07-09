@@ -43,7 +43,7 @@ void Invitecmd::invite(std::string av[2], Channel &ch,int fd){
     std::map<std::string,int> user_list = ch.getUserList(channel);
     std::map<std::string,int>::iterator itt2;
     itt2 = ch.allclient.begin();
-    for(itt2;itt2!=ch.allclient.end();itt2++){
+    for(;itt2!=ch.allclient.end();itt2++){
         if(itt2->first == user){
             invited_fd = itt2->second;
             break;
@@ -91,6 +91,7 @@ std::string Invitecmd::nosuchuser(std::string invited_nick){
 }
 
 std::string Invitecmd::notadmin(std::string source_nick,std::string channel_name){
+    (void)channel_name;
     return(": 482 " + source_nick + " :You're not channel operator\r\n");
 }
 

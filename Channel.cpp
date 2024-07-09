@@ -16,7 +16,7 @@ void	createChannel(string av[2], Channel &ch, string nickname, int fd){
 				else
 					ch.addUser(av[0], nickname, fd);
 			}
-			else if (ch.getUserLimit(av[0]) != -1 || ch.getUserList(av[0]).size() >= ch.getUserLimit(av[0])){
+			else if (ch.getUserLimit(av[0]) != -1 || ch.getUserList(av[0]).size() >= (size_t)ch.getUserLimit(av[0])){
 				string toSend = ": 471 " + nickname + " " + av[0] + " :Channel is full\r\n";
 				send(fd, toSend.c_str(), toSend.size(), 0);
 			}

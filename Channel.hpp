@@ -26,11 +26,16 @@ class Channel {
 			bool TopicRestrictions;
 			string ChannelKey;
 			bool isKeyRequired;
+			ChannelData() 
+            : name(""), admin(""), topic("No topic set\n"), userLimit(-1),
+              InviteOnly(false), TopicRestrictions(false), ChannelKey(""), 
+              isKeyRequired(false) {}
 		};
 		map<string, ChannelData> Channels;
 		
 	public:
-		bool channelexist = false;
+		bool channelexist;
+		Channel() : channelexist(false){}
 		map<string,int> allclient;
 		map<string,int> getChannels(string channel_name){
 			map<string,int> res;
@@ -49,16 +54,14 @@ class Channel {
 			return Channels.count(channelName) > 0;
 		}
 		bool addChannel(string& channelName, string username, int fd) {
-			pair<map<string, ChannelData>::iterator, bool> result = Channels.insert({channelName, ChannelData{}});
-			if (!result.second) {
+			pair<map<string, ChannelData>::iterator, bool> result = Channels.insert(make_pair(channelName, ChannelData()));
+			if (!result.second)
 				return false;
-			}
-			result.first->second.name = channelName;
-			result.first->second.admin = username;
-			result.first->second.topic = "No topic set\n";
-			result.first->second.operators.insert(username);
-			result.first->second.userList[username] = fd;
-			result.first->second.userLimit = -1;
+			ChannelData& channelData = result.first->second;
+			channelData.name = channelName;
+			channelData.admin = username;
+			channelData.operators.insert(username);
+			channelData.userList[username] = fd; 
 			return true;
 		}
 
@@ -145,20 +148,23 @@ class Channel {
 		}
 		vector<string> getChannelNames() const {
 			vector<string> channelNames;
-			for (const pair<string, ChannelData>& channel : Channels)
-				channelNames.push_back(channel.first);
+			for (map<string, ChannelData>::const_iterator it = Channels.begin(); it != Channels.end(); ++it) {
+				channelNames.push_back(it->first);
+			}
 			return channelNames;
 		}
+
 		string getJoinedChannel(const string& username) const {
 			string lastJoinedChannel = "";
-			for (const pair<string, ChannelData>& channel : Channels) {
-				const ChannelData& channelData = channel.second;
+			for (map<string, ChannelData>::const_iterator it = Channels.begin(); it != Channels.end(); ++it) {
+				const ChannelData& channelData = it->second;
 				if (channelData.userList.count(username) > 0) {
 					lastJoinedChannel = channelData.name;
 				}
 			}
 			return lastJoinedChannel;
 		}
+
 		void removeInviteOnly(const string& channelName, const string& nickname, int fd) {
 			if (!isOperator(channelName, nickname)){
 				string toSend = ":localhost 482 " + channelName + " :You're not channel operator\r\n";

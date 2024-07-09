@@ -130,7 +130,7 @@ void KickCmd::kick(std::string full_args, Channel &ch,int fd){
         
         std::map<std::string,int>::iterator it3;
         it3 = user_list.begin();
-        for(it3;it3!=user_list.end();it3++)
+        for(;it3!=user_list.end();it3++)
         {
             if(it3->first==user)
             {
@@ -172,6 +172,7 @@ std::string KickCmd::nosuchuser(std::string kicked_nick){
 }
 
 std::string KickCmd::notadmin(std::string source_nick,std::string channel_name){
+    (void)source_nick;
     return(":localhost 482 " + channel_name + " :You're not channel operator\r\n");
 }
 

@@ -6,7 +6,7 @@
 
 void take_arguments(string args, string av[10000])
 {
-	int i = 0;
+	size_t i = 0;
 	int j = 0;
 
 	while(args.size()-2>i)
@@ -68,12 +68,11 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 						send(fd, topic.c_str(), topic.size(), 0);
 						map<string, int> vec2  = serv.ch.getChannels(av[0]);
 						map<string, int> ::iterator it5  =vec2.begin();
-						for(it5;it5!=vec2.end();it5++){
-							if(it5->second != fd)
+						for (; it5 != vec2.end(); ++it5) { 
+							if (it5->second != fd) {
 								send(it5->second, topic.c_str(), topic.size(), 0);
-							else
-								continue;
-						}
+							} 
+						} 
 					}
 					else{
 						string toSend = ":localhost 482 " + av[0] + " :You're not channel operator\r\n";
@@ -88,12 +87,11 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 					send(fd, topic.c_str(), topic.size(), 0);
 					map<string, int> vec2  = serv.ch.getChannels(av[0]);
 					map<string, int> ::iterator it5  =vec2.begin();
-					for(it5;it5!=vec2.end();it5++){
-						if(it5->second != fd)
+					for (; it5 != vec2.end(); ++it5) { 
+						if (it5->second != fd) {
 							send(it5->second, topic.c_str(), topic.size(), 0);
-						else
-							continue;
-					}
+						} 
+					} 
 				}
 			}
 			else{
@@ -127,7 +125,7 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 							if (!av[2].empty()) {
 								std::cout << "lastArg: ==============" << lastArg << std::endl;
 								//hna rh tad5l wa5a matansetech largument l5er otatexisti hit stoi tatreturni chi haja machi talhih
-								int limit = stoi(av[2]);
+								int limit = atoi(av[2].c_str()); 
 								serv.ch.setUserLimit(av[0], limit, getNickbyfd(serv, fd),fd);
 							}
 							else {

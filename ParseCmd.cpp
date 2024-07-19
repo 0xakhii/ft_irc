@@ -60,7 +60,7 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 		}
 		else if (cmd == "TOPIC"){
 			if (!av[1].empty()){
-				if(serv.ch.getTopicRestrictions(av[0])){
+				if(!serv.ch.getTopicRestrictions(av[0])){
 					if (serv.ch.isOperator(av[0],getNickbyfd(serv,fd))){
 						av[1].erase(0,1);
 						serv.ch.setTopic(av[0], av[1], getNickbyfd(serv, fd));
@@ -79,19 +79,6 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 						send(fd, toSend.c_str(), toSend.size(), 0);
 						
 					}
-				}
-				else{
-					av[1].erase(0,1);
-					serv.ch.setTopic(av[0], av[1], getNickbyfd(serv, fd));
-					string topic = ":localhost 332 " + getNickbyfd(serv,fd) + " " + av[0] + " :" + serv.ch.getTopic(av[0]) + "\r\n";
-					send(fd, topic.c_str(), topic.size(), 0);
-					map<string, int> vec2  = serv.ch.getChannels(av[0]);
-					map<string, int> ::iterator it5  =vec2.begin();
-					for (; it5 != vec2.end(); ++it5) { 
-						if (it5->second != fd) {
-							send(it5->second, topic.c_str(), topic.size(), 0);
-						} 
-					} 
 				}
 			}
 			else{

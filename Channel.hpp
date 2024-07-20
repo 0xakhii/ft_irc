@@ -124,11 +124,7 @@ class Channel {
 			return Channels.at(channelName).operators.count(nickname) > 0;
 		}
 		bool addOperator(const string& channelName, const string& nickname, int fd) {
-			if (!isOperator(channelName, nickname)){
-				string toSend = ":localhost 482 " + channelName + " :You're not channel operator\r\n";
-				send(fd, toSend.c_str(), toSend.size(), 0);
-				return false;
-			}
+			(void)fd;
 			Channels[channelName].operators.insert(nickname);
 			return true;
 		}

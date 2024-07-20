@@ -93,16 +93,21 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 				if (modeSign == '+'){
 					switch (modeFlag){
 						case 'o': // Give channel operator privilege
-							for(size_t i = 0; i < serv.clients.size(); ++i){
-								if (serv.clients[i].getNickname() == lastArg){
-									if (serv.ch.addOperator(av[0], serv.clients[i].getNickname(), fd)){
-										string toSend = ":localhost 351 " + serv.clients[i].getNickname() + "!" \
-										+ serv.clients[i].getUsername() + "@localhost MODE #" + av[0] + " +o " + \
-										serv.clients[i].getNickname() + "\nYou are now an operator\r\n" ;
-										send(serv.clients[i].getFd(), toSend.c_str(), toSend.size(), 0);
+							if (!serv.ch.isOperator(av[0], getNickbyfd(serv, fd))){
+								string toSend = ":localhost 482 " + av[0] + " :You're not channel operator\r\n";
+								send(fd, toSend.c_str(), toSend.size(), 0);
+							}
+							else
+								for(size_t i = 0; i < serv.clients.size(); ++i){
+									if (serv.clients[i].getNickname() == lastArg){
+										if (serv.ch.addOperator(av[0], lastArg, fd)){
+											string toSend = ":localhost 351 " + serv.clients[i].getNickname() + "!" \
+											+ serv.clients[i].getUsername() + "@localhost MODE #" + av[0] + " +o " + \
+											serv.clients[i].getNickname() + "\nYou are now an operator\r\n" ;
+											send(serv.clients[i].getFd(), toSend.c_str(), toSend.size(), 0);
+										}
 									}
 								}
-							}
 							break;
 						case 'i': // Set Invite-only channel
 							serv.ch.setInviteOnly(av[0], true, getNickbyfd(serv, fd),fd);

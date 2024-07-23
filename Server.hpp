@@ -62,6 +62,7 @@ class Server{
     static void SignalHandler(int signum);
     void CloseFds();
     bool parsUSer(int i,std::string unusedInt,std::string unusedChar,std::string command,int fd,std::string realname,std::string username);
+    void irc_bot(Client &client,std::string arg);
 
 };
 void	ParseCmd(string cmd, Server& serv, int fd);

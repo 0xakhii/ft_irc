@@ -69,8 +69,6 @@ void Server::ReceiveNewData(int fd)
 	else{
 		buff[bytes] = '\0';
         std::string data(buff);
-        int k=0;
-        std::cout<<"----"<<k<<"---"<<fd<<std::endl;
         if (data == "PING WEBSERV\r\n"){
             std::string toSend = ":localhost PONG\r\n";
             send(fd, toSend.c_str(), toSend.size(), 0);

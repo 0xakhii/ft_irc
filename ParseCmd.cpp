@@ -115,8 +115,6 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 							break;
 						case 'l': // Set the user limit to channel
 							if (!av[2].empty()) {
-								std::cout << "lastArg: ==============" << lastArg << std::endl;
-								//hna rh tad5l wa5a matansetech largument l5er otatexisti hit stoi tatreturni chi haja machi talhih
 								int limit = atoi(av[2].c_str()); 
 								serv.ch.setUserLimit(av[0], limit, getNickbyfd(serv, fd),fd);
 							}
@@ -129,11 +127,9 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 						case 'k':
 						
 							if (!av[2].empty()) {
-								std::cout << "lastArg: ==============" << lastArg << std::endl; // Set the channel key (password)
 								serv.ch.setChannelKey(av[0], lastArg, getNickbyfd(serv, fd),fd);
 							}
 							else{
-								std::cout<<"cmdsize: ================="<<cmd.size()<<std::endl;
 								string toSend = ": 461 " + cmd + " :Not enough parameters\r\n";
 								send(fd, toSend.c_str(), toSend.size(), 0);
 							}
@@ -221,7 +217,6 @@ std::string relaymsg(string av[10000])
 void msgtochannel(string av[10000],int fd,Server &serv){
 	string ch = av[0];
 	string msg = relaymsg(av);
-	std::cout << "msg--------------: " << msg << std::endl;
 	map<string, int> members = serv.ch.getChannels(ch);
 	msg.erase(0,1);
 	string res = ":" + getNickbyfd(serv, fd) + " PRIVMSG " + ch + " :" + msg + "\r\n";

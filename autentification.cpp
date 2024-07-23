@@ -24,7 +24,6 @@ void Server::parseClientInput(int fd, const std::string& data) {
             close(fd);
         }
         for (size_t i = 0; i < clients.size(); ++i) { 
-            std::cout<<"our i-->"<<i<<std::endl;
              Client& client = clients[i];
             if (client.getFd() == fd) {
                 if (command == "CAP")
@@ -40,7 +39,6 @@ void Server::parseClientInput(int fd, const std::string& data) {
                         std::string pass_err;
                         if(passe.empty())
                         {
-                            std::cout<<"hello \n";
                              pass_err=ERR_NEEDMOREPARAMS(line);
                         }
                         else

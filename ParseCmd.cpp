@@ -201,6 +201,17 @@ void	ParseCmd(string cmd, Server& serv, int fd){
 			+ getUserbyfd(serv, fd) + " PONG " + av[0] + "\r\n";
 			send(fd, toSend.c_str(), toSend.size(), 0);
 		}
+		else if(cmd == "bot")
+		{
+			std::cout <<cmd_tmp << " " << av[0] <<"bot command\n";
+			for(size_t i = 0; i < serv.clients.size(); i++)
+			{
+				if(serv.clients[i].getFd() == fd)
+				{
+					serv.irc_bot(serv.clients[i],av[0]);
+				}
+			}
+		}
 	}
 }
 
